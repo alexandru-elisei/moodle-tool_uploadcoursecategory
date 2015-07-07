@@ -193,7 +193,9 @@ class tool_uploadcoursecategory_processor {
             if ($categ_test->prepare()) {
                 print "\n\nPrepared !!!!\n";
             } else {
-                print "\n\nNot valid...\n";
+                print "\nErrors encountered:\n\t";
+                print_r($categ_test->get_errors());
+                print "\n";
             }
 
             /*

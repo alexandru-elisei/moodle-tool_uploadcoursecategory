@@ -53,8 +53,8 @@ class tool_uploadcoursecategory_category {
     /** @var int the ID of the course category that had been processed. */
     protected $id;
 
-    /** @var int the ID of the course category parent. */
-    protected $parent;
+    /** @var int the ID of the course category parent, default Top. */
+    protected $parent = 0;
 
     /** @var array containing options passed from the processor. */
     protected $importoptions = array();
@@ -147,6 +147,15 @@ class tool_uploadcoursecategory_category {
     }
 
     /**
+     * Return the errors found during preparation.
+     *
+     * @return array
+     */
+    public function get_errors() {
+        return $this->errors;
+    }
+
+    /**
      * Return whether the course category exists or not.
      *
      * @param string $name the name to use to check if the course exists. Falls back on $this->shortname if empty.
@@ -179,8 +188,8 @@ class tool_uploadcoursecategory_category {
         print "\nEntering prepare...\n";
         
         // Checking mandatory fields.
-        foreach ($mandatoryfields as $key => $field) {
-            if (!in_array($field, $this->rawdata)) {
+        foreach (self::$mandatoryfields as $key => $field) {
+            if (!isset($this->rawdata[$field])) {
                 $this->error('missingmandatoryfields', new lang_string('missingmandatoryfields',
                     'tool_uploadcoursecategory'));
                 return false;
