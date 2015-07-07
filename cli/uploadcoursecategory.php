@@ -43,7 +43,6 @@ list($options, $unrecognized) = cli_get_params(array(
     //'restorefile' => false,
     'allowdeletes' => false,
     'allowrenames' => false,
-    'visible' => true,
     'standardise' => true
 ),
 array(
@@ -73,7 +72,6 @@ Options:
 --allowdeletes             Allow courses to be deleted: true or false (default)
 --allowrenames             Allow courses to be renamed: true or false (default)
 //--shortnametemplate        Template to generate the shortname from
---visible                  Set wether the category is visible or hidden: true (default) or false
 --standardise              Standardise category names: true (default) or false
 
 

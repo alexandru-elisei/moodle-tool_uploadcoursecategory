@@ -87,9 +87,6 @@ class tool_uploadcoursecategory_processor {
     /** @var bool are deletes allowed. */
     protected $allowdeletes;
 
-    /** @var bool are visibile or hidden. */
-    protected $visible;
-
     /** @var bool are to be standardised. */
     protected $standardise;
 
@@ -135,9 +132,6 @@ class tool_uploadcoursecategory_processor {
         }
         if (isset($options['allowdeletes'])) {
             $this->allowdeletes = $options['allowdeletes'];
-        }
-        if (isset($options['visible'])) {
-            $this->visible = $options['visible'];
         }
         if (isset($options['standardise'])) {
             $this->standardise = $options['standardise'];
@@ -223,6 +217,21 @@ class tool_uploadcoursecategory_processor {
                 throw new moodle_exception($e->getMessage(), 'error');
             }
         }
+    }
+
+    /**
+     * Return a category import object.
+     *
+     * @param array $data to import the category with.
+     * @return tool_uploadcoursecategory_category
+     */
+    protected function get_coursecategory($data) {
+        $importoptions = array(
+            'allowdeletes'  => $this->allowdeletes,
+            'allowrenames'  => $this->allowrenames,
+            'standardise'   => $this->standardise
+        );
+        return new tool_uploadcoursecategory_category($this->mode, $this->updatemode, $data, $importoptions);
     }
 
     /**
