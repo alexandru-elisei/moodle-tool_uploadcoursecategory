@@ -25,7 +25,6 @@
 define('CLI_SCRIPT', true);
 
 require(__DIR__ . '/../../../../config.php');
-#require_once('../classes/processor.php');
 require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/coursecatlib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
@@ -161,13 +160,6 @@ if ($readcount === false) {
 } else if ($readcount == 0) {
     print_error('csvemptyfile', 'error', '', $cir->get_error());
 }
-
-print "\nContent:\n";
-print_r($content);
-
-print "\nCIR:\n";
-print_r($cir);
-
 unset($content);
 
 $processor = new tool_uploadcoursecategory_processor($cir, $processoroptions);

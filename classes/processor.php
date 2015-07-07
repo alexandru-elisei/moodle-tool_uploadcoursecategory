@@ -141,10 +141,6 @@ class tool_uploadcoursecategory_processor {
         $this->columns = $cir->get_columns();
         $this->validate_csv();
         $this->reset();
-
-        print "CSV colums:\n";
-        print_r($this->columns . "\n");
-        print_r($cir->get_columns() . "\n");
     }
 
     /**
@@ -156,8 +152,6 @@ class tool_uploadcoursecategory_processor {
     public function execute($tracker = null) {
 
         global $DB;
-
-        print "Entering execute method...\n";
 
         if ($this->processstarted) {
             throw new moodle_exception('process_already_started', 'error');
@@ -174,13 +168,12 @@ class tool_uploadcoursecategory_processor {
         core_php_time_limit::raise();
         raise_memory_limit(MEMORY_HUGE);
 
-        print "Raised limits...\n\n";
-
         // Loop over CSV lines.
         while ($line = $this->cir->next()) {
             $this->linenum++;
             $total++;
 
+            /*
             print "execute: this->columns:\n";
             print_r($this->columns);
             print "\n";
@@ -188,12 +181,22 @@ class tool_uploadcoursecategory_processor {
             print "execute: line:\n";
             print_r($line);
             print "\n";
+             */
 
             $data = $this->parse_line($line);
 
             print "\nData is:\n";
             print_r($data);
 
+            $categ_test = $this->get_coursecategory($data);
+
+            if ($categ_test->prepare()) {
+                print "\n\nPrepared !!!!\n";
+            } else {
+                print "\n\nNot valid...\n";
+            }
+
+            /*
             $coursecategory = new stdClass();
             foreach ($data as $key => $value) {
                 $coursecategory->$key = $value;
@@ -216,6 +219,7 @@ class tool_uploadcoursecategory_processor {
             catch (moodle_exception $e) {
                 throw new moodle_exception($e->getMessage(), 'error');
             }
+             */
         }
     }
 
@@ -231,7 +235,7 @@ class tool_uploadcoursecategory_processor {
             'allowrenames'  => $this->allowrenames,
             'standardise'   => $this->standardise
         );
-        return new tool_uploadcoursecategory_category($this->mode, $this->updatemode, $data, $importoptions);
+        return  new tool_uploadcoursecategory_category($this->mode, $this->updatemode, $data, $importoptions);
     }
 
     /**
