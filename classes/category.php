@@ -122,7 +122,8 @@ class tool_uploadcoursecategory_category {
         $this->updatemode = $updatemode;
 
         if (isset($rawdata['name'])) {
-            $this->name = $rawdata['name'];
+            $categories = explode('/', $rawdata['name']);
+            $this->name = array_pop($categories);
         }
         $this->rawdata = $rawdata;
 
@@ -161,19 +162,53 @@ class tool_uploadcoursecategory_category {
      * @param string $name the name to use to check if the course exists. Falls back on $this->shortname if empty.
      * @return bool
      */
-    /*
-    protected function exists($name = null) {
+    protected function exists($name = null, $parent = null) {
         global $DB;
 
         if (is_null($name)) {
             $name = $this->name;
         }
-        if (!empty($name) || is_numeric($name)) {
-            return $DB->record_exists('course', array('shortname' => $shortname));
+        if (is_null($parent)) {
+            $parent = $this->parent;
         }
-        return false;
+        return $DB->get_record('course_categories', array('name' => $name,
+                'parent' => $parent));
     }
+
+    /**
+     * Extracts the parent and validates the category hierarchy.
+     *
+     * @return bool false if one of the parents doesn't exist
      */
+    protected function prepare_parent(){
+        global $DB;
+
+        $categories = explode('/', $this->rawdata['name']);
+        // Removing from hierarchy the category we wish to create/modify
+        array_pop($categories);
+        
+        // Removing "Top" parent category
+        if (count($categories) > 0) {
+            if ($categories[0] == get_string('top')) {
+                array_shift($categories);
+            }
+        }
+
+        // Walking the hierarchy to check if parents exist
+        if (count($categories) > 0) {
+            foreach ($categories as $cat) {
+                $cat = trim($cat);
+                $category = $DB->get_record('course_categories', 
+                        array('name' => $cat, 'parent' => $this->parent));
+                if (empty($category)) {
+                    return false;
+                }
+                $this->parent = $category;
+            }
+        }
+
+        return true;
+    }
 
     /**
      * Validates and prepares the data.
@@ -199,18 +234,25 @@ class tool_uploadcoursecategory_category {
         // Checking the correct name format.
         if (!empty($this->name) || is_numeric($this->name)) {
             if ($this->name !== clean_param($this->name, PARAM_TEXT)) {
-                $this->error('invalidname', new lang_string('invalidname', 'tool_uploadcoursecategory'));
+                $this->error('invalidname', new lang_string('invalidname',
+                        'tool_uploadcoursecategory'));
                 return false;
             }
         }
 
-        /*
         // Validate hierarchy, if necessary. - NOT DONE!!!
-        $categories = explode('/', $this->name);
+        if(!$this->prepare_parent()) {
+            $this->error('missingcategoryparent',
+                new lang_string('missingcategoryparent'));
+            return false;
+        }
 
         $exists = $this->exists();
 
+        var_dump($exists);
+
         // Do we want to delete the course?
+        /*
         if ($this->options['delete']) {
             if (!$exists) {
                 $this->error('cannotdeletecoursenotexist', new lang_string('cannotdeletecoursenotexist', 'tool_uploadcourse'));
