@@ -124,7 +124,7 @@ class tool_uploadcoursecategory_processor {
 
         // Default update mode
         $this->updatemode = self::UPDATE_NOTHING;
-        if (isset($option['updatemode'])) {
+        if (isset($options['updatemode'])) {
             $this->updatemode = (int) $options['updatemode'];
         }
         if (isset($options['allowrenames'])) {
@@ -191,11 +191,16 @@ class tool_uploadcoursecategory_processor {
             $categ_test = $this->get_coursecategory($data);
 
             if ($categ_test->prepare()) {
+                $categ_test->proceed();
+
                 print "\n\nPrepared !!!!\n";
+
             } else {
+
                 print "\nErrors encountered:\n\t";
                 print_r($categ_test->get_errors());
                 print "\n";
+
             }
 
             /*

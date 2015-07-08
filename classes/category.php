@@ -165,7 +165,7 @@ class tool_uploadcoursecategory_category {
      * @param string $name the name to use to check if the course exists. Falls back on $this->shortname if empty.
      * @return bool
      */
-    protected function check_exists($name = null, $parent = null) {
+    protected function get_exists($name = null, $parent = null) {
         global $DB;
 
         if (is_null($name)) {
@@ -222,12 +222,14 @@ class tool_uploadcoursecategory_category {
         global $DB;
 
         try {
-            $deletecat = coursecat::get($this->exists->id, MUST_EXIST);
+            $deletecat = coursecat::get($this->exists->id, IGNORE_MISSING, true);
             $deletecat->delete_full(false);
         }
         catch (moodle_exception $e) {
-            throw new moodle_exception($e->getMessage(), 'error');
+            return false;
         }
+
+        return true;
     }
 
     /**
@@ -252,12 +254,61 @@ class tool_uploadcoursecategory_category {
     }
 
     /**
+     * Return whether there were errors with this category.
+     *
+     * @return bool
+     */
+    public function has_errors() {
+        return !empty($this->errors);
+    }
+
+    /**
+     * Can we modify the field of an existing category?
+     *
+     * @return bool
+     */
+    protected function can_modify() {
+        return $this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE &&
+            in_array($this->updatemode, array(tool_uploadcoursecategory_processor::UPDATE_ALL_WITH_DATA_ONLY,
+                tool_uploadcoursecategory_processor::UPDATE_ALL_WITH_DATA_OR_DEFAULTS));
+    }
+
+    /**
+     * Proceed with the import of the category.
+     *
+     * @return bool false if an error occured.
+     */
+    public function proceed() {
+        global $CFG, $USER;
+
+        if (!$this->prepared) {
+            throw new coding_exception('The course has not been prepared.');
+        } else if ($this->has_errors()) {
+            throw new moodle_exception('Cannot proceed, errors were detected.');
+        } else if ($this->processstarted) {
+            throw new coding_exception('The process has already been started.');
+        }
+        $this->processstarted = true;
+
+        if ($this->do === self::DO_DELETE) {
+            if (!$this->delete()) {
+                $this->error('errorwhiledeletingcategory', 
+                    new lang_string('errorwhiledeletingcourse', 'tool_uploadcoursecategory'));
+                return false;
+            }
+            $this->processstarted = false;
+
+            return true;
+        }
+    }
+
+    /**
      * Validates and prepares the data.
      *
      * @return bool false is any error occured.
      */
     public function prepare() {
-        global $DB, $SITE;
+        global $DB;
 
         $this->prepared = true;
 
@@ -288,7 +339,7 @@ class tool_uploadcoursecategory_category {
             return false;
         }
 
-        $this->exists = $this->check_exists();
+        $this->exists = $this->get_exists();
 
         //var_dump($this->exists);
         //var_dump($SITE);
@@ -309,6 +360,7 @@ class tool_uploadcoursecategory_category {
 
             print "\ncategory: category deletion accepted\n";
 
+            // We only need the name and parent id for category deletion.
             return true;
         }
 
@@ -328,36 +380,24 @@ class tool_uploadcoursecategory_category {
             }
         }
 
-        // Basic data.
-        /*
-        $coursedata = array();
-        foreach ($this->rawdata as $field => $value) {
-            if (!in_array($field, self::$validfields)) {
-                continue;
-            } else if ($field == 'shortname') {
-                // Let's leave it apart from now, use $this->shortname only.
-                continue;
-            }
-            $coursedata[$field] = $value;
-        }
-
         $mode = $this->mode;
         $updatemode = $this->updatemode;
-        $usedefaults = $this->can_use_defaults();
+        //$usedefaults = $this->can_use_defaults();
 
-        // Resolve the category, and fail if not found.
-        $errors = array();
-        $catid = tool_uploadcourse_helper::resolve_category($this->rawdata, $errors);
-        if (empty($errors)) {
-            $coursedata['category'] = $catid;
-        } else {
-            foreach ($errors as $key => $message) {
-                $this->error($key, $message);
+        // Check if category id already exists and I'm not updating.
+        if ($this->rawdata['idnumber'] && !empty($this->rawdata['idnumber'])) {
+            if ($DB->record_exists('course_categories', array('idnumber' => $this->rawdata['idnumber'])) &&
+                    !$this->can_modify()) {
+                $this->error('categoryidnumberexists', new lang_string('categoryidnumberexists',
+                    'tool_uploadcoursecategory'));
+                return false;
             }
-            return false;
-        }
 
+            print "\ncategory id check passed\n";
+        }
+            
         // If the course does not exist, or will be forced created.
+        /*
         if (!$exists || $mode === tool_uploadcourse_processor::MODE_CREATE_ALL) {
 
             // Mandatory fields upon creation.
