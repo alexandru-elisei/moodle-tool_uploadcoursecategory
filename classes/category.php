@@ -203,11 +203,43 @@ class tool_uploadcoursecategory_category {
                 if (empty($category)) {
                     return false;
                 }
-                $this->parent = $category;
+                $this->parent = $category->id;
             }
         }
 
         return true;
+    }
+
+    /**
+     * Delete the current category.
+     *
+     * @return bool
+     */
+    protected function delete() {
+        global $DB;
+    }
+
+
+
+    /**
+     * Does the mode allow for course creation?
+     *
+     * @return bool
+     */
+    protected function can_create() {
+        return in_array($this->mode, array(tool_uploadcoursecategory_processor::MODE_CREATE_ALL,
+            tool_uploadcoursecategory_processor::MODE_CREATE_NEW,
+            tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE)
+        );
+    }
+
+    /**
+     * Does the mode allow for category deletion?
+     *
+     * @return bool
+     */
+    protected function can_delete() {
+        return $this->importoptions['allowdeletes'];
     }
 
     /**
@@ -235,59 +267,60 @@ class tool_uploadcoursecategory_category {
         if (!empty($this->name) || is_numeric($this->name)) {
             if ($this->name !== clean_param($this->name, PARAM_TEXT)) {
                 $this->error('invalidname', new lang_string('invalidname',
-                        'tool_uploadcoursecategory'));
+                    'tool_uploadcoursecategory'));
                 return false;
             }
         }
 
-        // Validate hierarchy, if necessary. - NOT DONE!!!
+        // Validate parent hierarchy.
         if(!$this->prepare_parent()) {
-            $this->error('missingcategoryparent',
-                new lang_string('missingcategoryparent'));
+            $this->error('missingcategoryparent', new lang_string('missingcategoryparent',
+                'tool_uploadcoursecategory'));
             return false;
         }
 
         $exists = $this->exists();
 
-        var_dump($exists);
+        //var_dump($exists);
+        //var_dump($SITE);
 
         // Do we want to delete the course?
-        /*
-        if ($this->options['delete']) {
+        if (!empty($this->options['deleted'])) {
             if (!$exists) {
-                $this->error('cannotdeletecoursenotexist', new lang_string('cannotdeletecoursenotexist', 'tool_uploadcourse'));
+                $this->error('cannotdeletecategorynotexist', new lang_string('cannotdeletecategorynotexist',
+                    'tool_uploadcoursecategory'));
                 return false;
             } else if (!$this->can_delete()) {
-                $this->error('coursedeletionnotallowed', new lang_string('coursedeletionnotallowed', 'tool_uploadcourse'));
+                $this->error('categorydeletionnotallowed', new lang_string('categorydeletionnotallowed',
+                    'tool_uploadcoursecategory'));
                 return false;
             }
 
             $this->do = self::DO_DELETE;
+
+            print "\ncategory: category deletion accepted\n";
+
             return true;
         }
 
         // Can we create/update the course under those conditions?
         if ($exists) {
-            if ($this->mode === tool_uploadcourse_processor::MODE_CREATE_NEW) {
-                $this->error('courseexistsanduploadnotallowed',
-                    new lang_string('courseexistsanduploadnotallowed', 'tool_uploadcourse'));
+            if ($this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_NEW) {
+                $this->error('categoryexistsanduploadnotallowed',
+                    new lang_string('categoryexistsanduploadnotallowed', 'tool_uploadcoursecategory'));
                 return false;
-            } else if ($this->can_update()) {
-                // We can never allow for any front page changes!
-                if ($this->shortname == $SITE->shortname) {
-                    $this->error('cannotupdatefrontpage', new lang_string('cannotupdatefrontpage', 'tool_uploadcourse'));
-                    return false;
-                }
             }
         } else {
             if (!$this->can_create()) {
-                $this->error('coursedoesnotexistandcreatenotallowed',
-                    new lang_string('coursedoesnotexistandcreatenotallowed', 'tool_uploadcourse'));
+                $this->error('categorydoesnotexistandcreatenotallowed',
+                    new lang_string('categorydoesnotexistandcreatenotallowed', 
+                        'tool_uploadcoursecategory'));
                 return false;
             }
         }
 
         // Basic data.
+        /*
         $coursedata = array();
         foreach ($this->rawdata as $field => $value) {
             if (!in_array($field, self::$validfields)) {
@@ -518,7 +551,4 @@ class tool_uploadcoursecategory_category {
 
         return true;
     }
-
-
-
 }
