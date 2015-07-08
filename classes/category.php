@@ -68,6 +68,9 @@ class tool_uploadcoursecategory_category {
     /** @var int constant value of self::DO_*, what to do with that course */
     protected $do;
 
+    /** @var object category database entry */
+    protected $exists = null;
+
     /** @var bool set to true once we have prepared the course */
     protected $prepared = false;
 
@@ -162,7 +165,7 @@ class tool_uploadcoursecategory_category {
      * @param string $name the name to use to check if the course exists. Falls back on $this->shortname if empty.
      * @return bool
      */
-    protected function exists($name = null, $parent = null) {
+    protected function check_exists($name = null, $parent = null) {
         global $DB;
 
         if (is_null($name)) {
@@ -217,9 +220,15 @@ class tool_uploadcoursecategory_category {
      */
     protected function delete() {
         global $DB;
+
+        try {
+            $deletecat = coursecat::get($this->exists->id, MUST_EXIST);
+            $deletecat->delete_full(false);
+        }
+        catch (moodle_exception $e) {
+            throw new moodle_exception($e->getMessage(), 'error');
+        }
     }
-
-
 
     /**
      * Does the mode allow for course creation?
@@ -279,14 +288,14 @@ class tool_uploadcoursecategory_category {
             return false;
         }
 
-        $exists = $this->exists();
+        $this->exists = $this->check_exists();
 
-        //var_dump($exists);
+        //var_dump($this->exists);
         //var_dump($SITE);
 
         // Do we want to delete the course?
         if (!empty($this->options['deleted'])) {
-            if (!$exists) {
+            if (!$this->exists) {
                 $this->error('cannotdeletecategorynotexist', new lang_string('cannotdeletecategorynotexist',
                     'tool_uploadcoursecategory'));
                 return false;
@@ -304,7 +313,7 @@ class tool_uploadcoursecategory_category {
         }
 
         // Can we create/update the course under those conditions?
-        if ($exists) {
+        if ($this->exists) {
             if ($this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_NEW) {
                 $this->error('categoryexistsanduploadnotallowed',
                     new lang_string('categoryexistsanduploadnotallowed', 'tool_uploadcoursecategory'));
