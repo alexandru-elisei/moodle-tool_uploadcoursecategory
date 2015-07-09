@@ -330,6 +330,11 @@ class tool_uploadcoursecategory_category {
         }
 
         // Standardise name
+        if ($this->importoptions['standardise']) {
+            $this->name = clean_param($this->name, PARAM_MULTILANG);
+
+            print "\nStandardised name to $this->name.\n";
+        }
 
         // Validate parent hierarchy.
         if(!$this->prepare_parent()) {
