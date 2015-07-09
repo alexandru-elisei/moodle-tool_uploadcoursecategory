@@ -365,9 +365,6 @@ class tool_uploadcoursecategory_category {
 
         $this->existing = $this->exists();
 
-        //var_dump($this->existing);
-        //var_dump($SITE);
-
         // Can we delete the category?
         if (!empty($this->options['deleted'])) {
             if (is_null($this->existing)) {
@@ -396,7 +393,11 @@ class tool_uploadcoursecategory_category {
                 return false;
             }
         } else {
-            if (!$this->can_create()) {
+            // If I cannot create the course, or I'm in update-only mode and I'm 
+            // not renaming
+            if (!$this->can_create() && 
+                $this->mode === tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY &&
+                !isset($this->rawdata['oldname'])) {
                 $this->error('categorydoesnotexistandcreatenotallowed',
                     new lang_string('categorydoesnotexistandcreatenotallowed', 
                         'tool_uploadcoursecategory'));
@@ -421,12 +422,13 @@ class tool_uploadcoursecategory_category {
         if (!empty($this->rawdata['oldname'])) {
             $oldname = $this->rawdata['oldname'];
 
-            var_dump($oldname);
+            print "\noldname: $oldname, new name: $this->name\n";
 
             if (!$this->can_update()) {
                 $this->error('canonlyrenameinupdatemode', 
                     new lang_string('canonlyrenameinupdatemode', 'tool_uploadcourse'));
                 return false;
+            }
                 /*
             } else if (!$this->exists($oldname)) {
                 $this->error('cannotrenamecoursenotexist',
@@ -454,6 +456,9 @@ class tool_uploadcoursecategory_category {
                 array('from' => $this->shortname, 'to' => $coursedata['shortname'])));
                  */
         }
+
+        print "\nCan rename!\n";
+
 
         // If exists, but we only want to create courses, increment the shortname.
         /*
