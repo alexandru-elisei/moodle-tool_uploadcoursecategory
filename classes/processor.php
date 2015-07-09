@@ -56,7 +56,7 @@ class tool_uploadcoursecategory_processor {
     const MODE_UPDATE_ONLY = 4;
 
     /**
-     * During update, do not update anything
+     * Do not update existing categories.
      */
     const UPDATE_NOTHING = 5;
 
@@ -181,7 +181,7 @@ class tool_uploadcoursecategory_processor {
             $categ_test = $this->get_coursecategory($data);
 
             if ($categ_test->prepare()) {
-                $categ_test->proceed();
+                //$categ_test->proceed();
 
                 print "\n\nPrepared !!!!\n";
 

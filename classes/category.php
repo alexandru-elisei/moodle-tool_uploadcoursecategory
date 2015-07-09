@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->dirroot . '/course/lib.php');
-require_once($CFG->libdir . '/coursecat.php');
+require_once($CFG->libdir . '/coursecatlib.php');
 
 /**
  * Category class.
@@ -325,13 +325,11 @@ class tool_uploadcoursecategory_category {
             }
         }
 
-        // Checking the correct name format.
-        if (!empty($this->name) || is_numeric($this->name)) {
-            if ($this->name !== clean_param($this->name, PARAM_TEXT)) {
-                $this->error('invalidname', new lang_string('invalidname',
-                    'tool_uploadcoursecategory'));
-                return false;
-            }
+        // Validate idnumber field.
+        if (isset($this->rawdata['idnumber']) && !is_numeric($this->rawdata['idnumber'])) {
+            $this->error('idnumbernotanumber', new lang_string('idnumbernotanumber',
+                'tool_uploadcoursecategory'));
+            return false;
         }
 
         // Validate parent hierarchy.
@@ -382,16 +380,15 @@ class tool_uploadcoursecategory_category {
             }
         }
         
-        // Check if category id already exists and I'm not updating.
-        if ($this->rawdata['idnumber'] && !empty($this->rawdata['idnumber'])) {
-            if ($DB->record_exists('course_categories', array('idnumber' => $this->rawdata['idnumber'])) &&
-                    !$this->can_modify()) {
-                $this->error('categoryidnumberexists', new lang_string('categoryidnumberexists',
-                    'tool_uploadcoursecategory'));
-                return false;
-            }
+        // Check if idnumber already exists, idnumber updating not allowed
+        if ($this->existing && isset($this->rawdata['idnumber']) &&
+                $DB->record_exists('course_categories', array('idnumber' => $thos->rawdata['idnumber']))) {
+            $this->error('idnumbernotunique', new lang_string('idnumbernotunique',
+                'tool_uploadcoursecategory'));
+            return false;
 
             print "\ncategory id check passed\n";
+
         }
             
         // If the course does not exist, or will be forced created.
