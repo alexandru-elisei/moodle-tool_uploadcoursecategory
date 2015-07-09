@@ -36,17 +36,20 @@ require_once($CFG->libdir . '/coursecatlib.php');
  */
 class tool_uploadcoursecategory_category {
 
-    /** Outcome of the process: creating the course */
+    /** Outcome of the process: creating the course category */
     const DO_CREATE = 1;
 
-    /** Outcome of the process: updating the course */
+    /** Outcome of the process: updating the course category */
     const DO_UPDATE = 2;
 
-    /** Outcome of the process: deleting the course */
+    /** Outcome of the process: deleting the course category */
     const DO_DELETE = 3;
 
     /** @var array final import data. */
     protected $finaldata = array();
+
+    /** @var array course category import data. */
+    protected $rawdata = array();
 
     /** @var array errors. */
     protected $errors = array();
@@ -63,35 +66,32 @@ class tool_uploadcoursecategory_category {
     /** @var int import mode. Matches tool_uploadcoursecategory_processor::MODE_* */
     protected $mode;
 
-    /** @var array course import options. */
+    /** @var int update mode. Matches tool_uploadcourse_processor::UPDATE_* */
+    protected $updatemode;
+
+    /** @var array course category import options. */
     protected $options = array();
 
-    /** @var int constant value of self::DO_*, what to do with that course */
+    /** @var int constant value of self::DO_*, what to do with that course category */
     protected $do;
 
     /** @var object database record of an existing category */
     protected $existing = null;
 
-    /** @var bool set to true once we have prepared the course */
+    /** @var bool set to true once we have prepared the course category */
     protected $prepared = false;
 
-    /** @var bool set to true once we have started the process of the course */
+    /** @var bool set to true once we have started the process of the course category */
     protected $processstarted = false;
-
-    /** @var array course import data. */
-    protected $rawdata = array();
 
     /** @var string category name. */
     protected $name;
 
-    /** @var int update mode. Matches tool_uploadcourse_processor::UPDATE_* */
-    protected $updatemode;
-
-    /** @var array fields allowed as course data. */
+    /** @var array fields allowed as course category data. */
     static protected $validfields = array('name', 'description', 'idnumber',
         'visible', 'deleted', 'theme', 'oldname');
 
-    /** @var array fields required on course creation. */
+    /** @var array fields required on course category creation. */
     static protected $mandatoryfields = array('name');
 
     /** @var array fields which are considered as options. */
@@ -103,13 +103,10 @@ class tool_uploadcoursecategory_category {
      *
      * @param int $mode import mode, constant matching tool_uploadcoursecategory_processor::MODE_*
      * @param int $updatemode update mode, constant matching tool_uploadcoursecategory_processor::UPDATE_*
-     * @param array $rawdata raw course data.
+     * @param array $rawdata raw course category data.
      * @param array $importoptions import options.
      */
     public function __construct($mode, $updatemode, $rawdata, $importoptions = array()) {
-
-        print "\nEntering category constructor...\n";
-
         if ($mode !== tool_uploadcoursecategory_processor::MODE_CREATE_NEW &&
                 $mode !== tool_uploadcoursecategory_processor::MODE_CREATE_ALL &&
                 $mode !== tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE &&
@@ -137,7 +134,7 @@ class tool_uploadcoursecategory_category {
         }
 
         // Copy import options.
-       $this->importoptions = $importoptions;
+        $this->importoptions = $importoptions;
     }
 
     /**
@@ -332,6 +329,8 @@ class tool_uploadcoursecategory_category {
             return false;
         }
 
+        // Standardise name
+
         // Validate parent hierarchy.
         if(!$this->prepare_parent()) {
             $this->error('missingcategoryparent', new lang_string('missingcategoryparent',
@@ -381,6 +380,7 @@ class tool_uploadcoursecategory_category {
         }
         
         // Check if idnumber already exists, idnumber updating not allowed
+        /*
         if ($this->existing && isset($this->rawdata['idnumber']) &&
                 $DB->record_exists('course_categories', array('idnumber' => $thos->rawdata['idnumber']))) {
             $this->error('idnumbernotunique', new lang_string('idnumbernotunique',
@@ -390,27 +390,10 @@ class tool_uploadcoursecategory_category {
             print "\ncategory id check passed\n";
 
         }
-            
-        // If the course does not exist, or will be forced created.
-        /*
-        if (!$exists || $mode === tool_uploadcourse_processor::MODE_CREATE_ALL) {
-
-            // Mandatory fields upon creation.
-            $errors = array();
-            foreach (self::$mandatoryfields as $field) {
-                if ((!isset($coursedata[$field]) || $coursedata[$field] === '') &&
-                        (!isset($this->defaults[$field]) || $this->defaults[$field] === '')) {
-                    $errors[] = $field;
-                }
-            }
-            if (!empty($errors)) {
-                $this->error('missingmandatoryfields', new lang_string('missingmandatoryfields', 'tool_uploadcourse',
-                    implode(', ', $errors)));
-                return false;
-            }
-        }
+         */
 
         // Should the course be renamed?
+        /*
         if (!empty($this->options['rename']) || is_numeric($this->options['rename'])) {
             if (!$this->can_update()) {
                 $this->error('canonlyrenameinupdatemode', new lang_string('canonlyrenameinupdatemode', 'tool_uploadcourse'));
@@ -437,35 +420,6 @@ class tool_uploadcoursecategory_category {
             $coursedata['shortname'] = $this->options['rename'];
             $this->status('courserenamed', new lang_string('courserenamed', 'tool_uploadcourse',
                 array('from' => $this->shortname, 'to' => $coursedata['shortname'])));
-        }
-
-        // Should we generate a shortname?
-        if (empty($this->shortname) && !is_numeric($this->shortname)) {
-            if (empty($this->importoptions['shortnametemplate'])) {
-                $this->error('missingshortnamenotemplate', new lang_string('missingshortnamenotemplate', 'tool_uploadcourse'));
-                return false;
-            } else if (!$this->can_only_create()) {
-                $this->error('cannotgenerateshortnameupdatemode',
-                    new lang_string('cannotgenerateshortnameupdatemode', 'tool_uploadcourse'));
-                return false;
-            } else {
-                $newshortname = tool_uploadcourse_helper::generate_shortname($coursedata,
-                    $this->importoptions['shortnametemplate']);
-                if (is_null($newshortname)) {
-                    $this->error('generatedshortnameinvalid', new lang_string('generatedshortnameinvalid', 'tool_uploadcourse'));
-                    return false;
-                } else if ($this->existing($newshortname)) {
-                    if ($mode === tool_uploadcourse_processor::MODE_CREATE_NEW) {
-                        $this->error('generatedshortnamealreadyinuse',
-                            new lang_string('generatedshortnamealreadyinuse', 'tool_uploadcourse'));
-                        return false;
-                    }
-                    $exists = true;
-                }
-                $this->status('courseshortnamegenerated', new lang_string('courseshortnamegenerated', 'tool_uploadcourse',
-                    $newshortname));
-                $this->shortname = $newshortname;
-            }
         }
 
         // If exists, but we only want to create courses, increment the shortname.

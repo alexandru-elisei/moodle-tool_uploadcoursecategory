@@ -94,6 +94,7 @@ echo "Moodle course category uploader running ...\n";
 $processoroptions = array(
     'allowdeletes' => $options['allowdeletes'],
     'allowrenames' => $options['allowrenames'],
+    'standardise' => $options['standardise']
     //'shortnametemplate' => $options['shortnametemplate']
 );
 
