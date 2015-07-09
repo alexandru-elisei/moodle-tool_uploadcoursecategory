@@ -113,7 +113,7 @@ class tool_uploadcoursecategory_category {
         if ($mode !== tool_uploadcoursecategory_processor::MODE_CREATE_NEW &&
                 $mode !== tool_uploadcoursecategory_processor::MODE_CREATE_ALL &&
                 $mode !== tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE &&
-                $mode !== tool_uploadcoursecategory_processor::MODE_UPDATE) {
+                $mode !== tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY) {
             throw new coding_exception('Incorrect mode.');
         } else if ($updatemode !== tool_uploadcoursecategory_processor::UPDATE_NOTHING &&
                 $updatemode !== tool_uploadcoursecategory_processor::UPDATE_ALL_WITH_DATA_ONLY &&

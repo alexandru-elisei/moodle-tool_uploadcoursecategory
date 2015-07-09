@@ -53,7 +53,7 @@ class tool_uploadcoursecategory_processor {
     /**
      * Only update existing categories.
      */
-    const MODE_UPDATE = 4;
+    const MODE_UPDATE_ONLY = 4;
 
     /**
      * During update, do not update anything
@@ -115,7 +115,7 @@ class tool_uploadcoursecategory_processor {
 
         // Extra sanity checks
         if (!isset($options['mode']) || !in_array($options['mode'], array(self::MODE_CREATE_NEW, self::MODE_CREATE_ALL,
-                self::MODE_CREATE_OR_UPDATE, self::MODE_UPDATE))) {
+                self::MODE_CREATE_OR_UPDATE, self::MODE_UPDATE_ONLY))) {
             throw new coding_exception('Unknown process mode');
         }
 

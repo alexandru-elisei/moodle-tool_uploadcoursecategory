@@ -102,7 +102,7 @@ $modes = array(
     'createnew' => tool_uploadcoursecategory_processor::MODE_CREATE_NEW,
     'createall' => tool_uploadcoursecategory_processor::MODE_CREATE_ALL,
     'createorupdate' => tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE,
-    'update' => tool_uploadcoursecategory_processor::MODE_UPDATE
+    'update' => tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY
 );
 
 if (!isset($options['mode']) || !isset($modes[$options['mode']])) {
@@ -121,7 +121,7 @@ $updatemodes = array(
 );
 
 if (($processoroptions['mode'] === tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE ||
-        $processoroptions['mode'] === tool_uploadcoursecategory_processor::MODE_UPDATE)
+        $processoroptions['mode'] === tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY)
         && (!isset($options['updatemode']) || !isset($updatemodes[$options['updatemode']]))) {
     echo get_string('invalideupdatemode', 'tool_uploadcoursecategory')."\n";
     echo $help;
