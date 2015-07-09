@@ -173,16 +173,6 @@ class tool_uploadcoursecategory_processor {
             $this->linenum++;
             $total++;
 
-            /*
-            print "execute: this->columns:\n";
-            print_r($this->columns);
-            print "\n";
-
-            print "execute: line:\n";
-            print_r($line);
-            print "\n";
-             */
-
             $data = $this->parse_line($line);
 
             print "\nData is:\n";
@@ -269,11 +259,6 @@ class tool_uploadcoursecategory_processor {
     protected function validate_csv() {
         if (empty($this->columns)) {
             throw new moodle_exception('cannot_read_tmp_file', 'error');
-        // Need at least name to create a valid category
-        /*
-        } else if (count($this->columns) < 1) {
-            throw new moodle_exception('cst_missing_columns', 'error');
-        */
         }
     }
 

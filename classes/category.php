@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->libdir . '/coursecat.php');
 
 /**
  * Category class.
@@ -379,11 +380,7 @@ class tool_uploadcoursecategory_category {
                 return false;
             }
         }
-
-        $mode = $this->mode;
-        $updatemode = $this->updatemode;
-        //$usedefaults = $this->can_use_defaults();
-
+        
         // Check if category id already exists and I'm not updating.
         if ($this->rawdata['idnumber'] && !empty($this->rawdata['idnumber'])) {
             if ($DB->record_exists('course_categories', array('idnumber' => $this->rawdata['idnumber'])) &&
