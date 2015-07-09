@@ -54,7 +54,7 @@ class tool_uploadcoursecategory_category {
     /** @var int the ID of the course category that had been processed. */
     protected $id;
 
-    /** @var int the ID of the course category parent, default Top. */
+    /** @var int the ID of the course category parent, default 0 ("Top"). */
     protected $parent = 0;
 
     /** @var array containing options passed from the processor. */
@@ -69,8 +69,8 @@ class tool_uploadcoursecategory_category {
     /** @var int constant value of self::DO_*, what to do with that course */
     protected $do;
 
-    /** @var object category database entry */
-    protected $exists = null;
+    /** @var object database record of an existing category */
+    protected $existing = null;
 
     /** @var bool set to true once we have prepared the course */
     protected $prepared = false;
@@ -161,12 +161,13 @@ class tool_uploadcoursecategory_category {
     }
 
     /**
-     * Return whether the course category exists or not.
+     * Return the course category database entry, or null.
      *
-     * @param string $name the name to use to check if the course exists. Falls back on $this->shortname if empty.
+     * @param string $name the name to use to check if the category exists.
+     * @param int $parent the id of the parent.
      * @return bool
      */
-    protected function get_exists($name = null, $parent = null) {
+    protected function exists($name = null, $parent = null) {
         global $DB;
 
         if (is_null($name)) {
@@ -223,7 +224,7 @@ class tool_uploadcoursecategory_category {
         global $DB;
 
         try {
-            $deletecat = coursecat::get($this->exists->id, IGNORE_MISSING, true);
+            $deletecat = coursecat::get($this->existing->id, IGNORE_MISSING, true);
             $deletecat->delete_full(false);
         }
         catch (moodle_exception $e) {
@@ -234,7 +235,7 @@ class tool_uploadcoursecategory_category {
     }
 
     /**
-     * Does the mode allow for course creation?
+     * Does the mode allow for category creation?
      *
      * @return bool
      */
@@ -340,14 +341,14 @@ class tool_uploadcoursecategory_category {
             return false;
         }
 
-        $this->exists = $this->get_exists();
+        $this->existing = $this->exists();
 
-        //var_dump($this->exists);
+        //var_dump($this->existing);
         //var_dump($SITE);
 
-        // Do we want to delete the course?
+        // Can we delete the category?
         if (!empty($this->options['deleted'])) {
-            if (!$this->exists) {
+            if (is_null($this->existing)) {
                 $this->error('cannotdeletecategorynotexist', new lang_string('cannotdeletecategorynotexist',
                     'tool_uploadcoursecategory'));
                 return false;
@@ -366,7 +367,7 @@ class tool_uploadcoursecategory_category {
         }
 
         // Can we create/update the course under those conditions?
-        if ($this->exists) {
+        if ($this->existing) {
             if ($this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_NEW) {
                 $this->error('categoryexistsanduploadnotallowed',
                     new lang_string('categoryexistsanduploadnotallowed', 'tool_uploadcoursecategory'));
@@ -456,7 +457,7 @@ class tool_uploadcoursecategory_category {
                 if (is_null($newshortname)) {
                     $this->error('generatedshortnameinvalid', new lang_string('generatedshortnameinvalid', 'tool_uploadcourse'));
                     return false;
-                } else if ($this->exists($newshortname)) {
+                } else if ($this->existing($newshortname)) {
                     if ($mode === tool_uploadcourse_processor::MODE_CREATE_NEW) {
                         $this->error('generatedshortnamealreadyinuse',
                             new lang_string('generatedshortnamealreadyinuse', 'tool_uploadcourse'));
