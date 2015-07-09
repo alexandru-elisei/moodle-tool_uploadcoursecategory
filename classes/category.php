@@ -244,6 +244,19 @@ class tool_uploadcoursecategory_category {
     }
 
     /**
+     * Does the mode allow for category update?
+     *
+     * @return bool
+     */
+    public function can_update() {
+        return in_array($this->mode,
+                array(
+                    tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY,
+                    tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE)
+                ) && $this->updatemode != tool_uploadcoursecategory_processor::UPDATE_NOTHING;
+    }
+
+    /**
      * Does the mode allow for category deletion?
      *
      * @return bool
@@ -259,6 +272,15 @@ class tool_uploadcoursecategory_category {
      */
     public function has_errors() {
         return !empty($this->errors);
+    }
+
+    /**
+     * Does the mode allow for category renaming?
+     *
+     * @return bool
+     */
+    public function can_rename() {
+        return $this->importoptions['allowrenames'];
     }
 
     /**
@@ -332,8 +354,6 @@ class tool_uploadcoursecategory_category {
         // Standardise name
         if ($this->importoptions['standardise']) {
             $this->name = clean_param($this->name, PARAM_MULTILANG);
-
-            print "\nStandardised name to $this->name.\n";
         }
 
         // Validate parent hierarchy.
@@ -398,16 +418,23 @@ class tool_uploadcoursecategory_category {
          */
 
         // Should the course be renamed?
-        /*
-        if (!empty($this->options['rename']) || is_numeric($this->options['rename'])) {
+        if (!empty($this->rawdata['oldname'])) {
+            $oldname = $this->rawdata['oldname'];
+
+            var_dump($oldname);
+
             if (!$this->can_update()) {
-                $this->error('canonlyrenameinupdatemode', new lang_string('canonlyrenameinupdatemode', 'tool_uploadcourse'));
+                $this->error('canonlyrenameinupdatemode', 
+                    new lang_string('canonlyrenameinupdatemode', 'tool_uploadcourse'));
                 return false;
-            } else if (!$exists) {
-                $this->error('cannotrenamecoursenotexist', new lang_string('cannotrenamecoursenotexist', 'tool_uploadcourse'));
+                /*
+            } else if (!$this->exists($oldname)) {
+                $this->error('cannotrenamecoursenotexist',
+                    new lang_string('cannotrenamecoursenotexist', 'tool_uploadcourse'));
                 return false;
             } else if (!$this->can_rename()) {
-                $this->error('courserenamingnotallowed', new lang_string('courserenamingnotallowed', 'tool_uploadcourse'));
+                $this->error('courserenamingnotallowed',
+                    new lang_string('courserenamingnotallowed', 'tool_uploadcourse'));
                 return false;
             } else if ($this->options['rename'] !== clean_param($this->options['rename'], PARAM_TEXT)) {
                 $this->error('invalidshortname', new lang_string('invalidshortname', 'tool_uploadcourse'));
@@ -425,9 +452,11 @@ class tool_uploadcoursecategory_category {
             $coursedata['shortname'] = $this->options['rename'];
             $this->status('courserenamed', new lang_string('courserenamed', 'tool_uploadcourse',
                 array('from' => $this->shortname, 'to' => $coursedata['shortname'])));
+                 */
         }
 
         // If exists, but we only want to create courses, increment the shortname.
+        /*
         if ($exists && $mode === tool_uploadcourse_processor::MODE_CREATE_ALL) {
             $original = $this->shortname;
             $this->shortname = tool_uploadcourse_helper::increment_shortname($this->shortname);
