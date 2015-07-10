@@ -482,38 +482,35 @@ class tool_uploadcoursecategory_category {
                     return false;
                 }
             }
+
+            print "\nCan rename!\n";
+
+            // All the needed operations for renaming are done.
+            $this->do = self::$DO_UPDATE;
+            return true;
         }
-
-                /*
-            } else if (isset($coursedata['idnumber']) &&
-                    $DB->count_records_select('course', 'idnumber = :idn AND shortname != :sn',
-                    array('idn' => $coursedata['idnumber'], 'sn' => $this->shortname)) > 0) {
-                $this->error('cannotrenameidnumberconflict', new lang_string('cannotrenameidnumberconflict', 'tool_uploadcourse'));
-                return false;
-            }
-            $coursedata['shortname'] = $this->options['rename'];
-            $this->status('courserenamed', new lang_string('courserenamed', 'tool_uploadcourse',
-                array('from' => $this->shortname, 'to' => $coursedata['shortname'])));
-                 */
-
-        print "\nCan rename!\n";
-
-
-        // If exists, but we only want to create courses, increment the shortname.
         /*
-        if ($exists && $mode === tool_uploadcourse_processor::MODE_CREATE_ALL) {
+        $this->status('courserenamed', new lang_string('courserenamed', 'tool_uploadcourse',
+            array('from' => $this->shortname, 'to' => $coursedata['shortname'])));
+             */
+
+
+        // If exists, but we only want to create categories, increment the name.
+        /*
+  
+        if ($this->existing && $this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_ALL) {
             $original = $this->shortname;
             $this->shortname = tool_uploadcourse_helper::increment_shortname($this->shortname);
             $exists = false;
             if ($this->shortname != $original) {
-                $this->status('courseshortnameincremented', new lang_string('courseshortnameincremented', 'tool_uploadcourse',
-                    array('from' => $original, 'to' => $this->shortname)));
+                //$this->status('courseshortnameincremented', new lang_string('courseshortnameincremented', 'tool_uploadcourse',
+                 //   array('from' => $original, 'to' => $this->shortname)));
                 if (isset($coursedata['idnumber'])) {
                     $originalidn = $coursedata['idnumber'];
                     $coursedata['idnumber'] = tool_uploadcourse_helper::increment_idnumber($coursedata['idnumber']);
                     if ($originalidn != $coursedata['idnumber']) {
-                        $this->status('courseidnumberincremented', new lang_string('courseidnumberincremented', 'tool_uploadcourse',
-                            array('from' => $originalidn, 'to' => $coursedata['idnumber'])));
+                  //      $this->status('courseidnumberincremented', new lang_string('courseidnumberincremented', 'tool_uploadcourse',
+                   //         array('from' => $originalidn, 'to' => $coursedata['idnumber'])));
                     }
                 }
             }
