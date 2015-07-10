@@ -135,6 +135,12 @@ class tool_uploadcoursecategory_category {
 
         // Copy import options.
         $this->importoptions = $importoptions;
+
+        print "\nImportoptions:\n";
+        var_dump($this->importoptions);
+        print "\nOptions:\n";
+        var_dump($this->options);
+        print "\n";
     }
 
     /**
@@ -418,7 +424,13 @@ class tool_uploadcoursecategory_category {
         }
          */
 
-        // Should the course be renamed?
+        print "\nPrepare importoptions:\n";
+        var_dump($this->importoptions);
+        print "\n";
+
+        print "\nallowrenames = $this->importoptions['allowrenames']\n";
+
+        // Can the category be renamed?
         if (!empty($this->rawdata['oldname'])) {
             $oldname = $this->rawdata['oldname'];
 
@@ -426,25 +438,26 @@ class tool_uploadcoursecategory_category {
 
             if (!$this->can_update()) {
                 $this->error('canonlyrenameinupdatemode', 
-                    new lang_string('canonlyrenameinupdatemode', 'tool_uploadcourse'));
+                    new lang_string('canonlyrenameinupdatemode', 'tool_uploadcoursecategory'));
                 return false;
-            }
-                /*
             } else if (!$this->exists($oldname)) {
-                $this->error('cannotrenamecoursenotexist',
-                    new lang_string('cannotrenamecoursenotexist', 'tool_uploadcourse'));
+                $this->error('cannotrenamecategorynotexist',
+                    new lang_string('cannotrenamecategorynotexist', 
+                        'tool_uploadcoursecategory'));
                 return false;
             } else if (!$this->can_rename()) {
-                $this->error('courserenamingnotallowed',
-                    new lang_string('courserenamingnotallowed', 'tool_uploadcourse'));
+                $this->error('categoryrenamingnotallowed',
+                    new lang_string('categoryrenamingnotallowed', 
+                        'tool_uploadcoursecategory'));
                 return false;
-            } else if ($this->options['rename'] !== clean_param($this->options['rename'], PARAM_TEXT)) {
-                $this->error('invalidshortname', new lang_string('invalidshortname', 'tool_uploadcourse'));
+            } else if ($this->exists($this->name)) {
+                $this->error('cannotrenamenamealreadyinuse',
+                    new lang_string('cannotrenamenamealreadyinuse', 
+                        'tool_uploadcoursecategory'));
                 return false;
-            } else if ($this->exists($this->options['rename'])) {
-                $this->error('cannotrenameshortnamealreadyinuse',
-                    new lang_string('cannotrenameshortnamealreadyinuse', 'tool_uploadcourse'));
-                return false;
+            }
+
+                /*
             } else if (isset($coursedata['idnumber']) &&
                     $DB->count_records_select('course', 'idnumber = :idn AND shortname != :sn',
                     array('idn' => $coursedata['idnumber'], 'sn' => $this->shortname)) > 0) {
