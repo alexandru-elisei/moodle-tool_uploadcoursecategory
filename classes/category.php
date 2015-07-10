@@ -371,6 +371,8 @@ class tool_uploadcoursecategory_category {
                 'tool_uploadcoursecategory'));
             return false;
         }
+        $this->rawdata['idnumber'] = (int) $this->rawdata['idnumber'];
+        
 
         // Standardise name
         if ($this->importoptions['standardise']) {
@@ -445,6 +447,8 @@ class tool_uploadcoursecategory_category {
             $this->oldname = array_pop($categories);
             $this->oldparentid = $this->prepare_parent($ategories, $this->oldparentid);
 
+            $oldexisting = $this->exists($this->oldname, $this->oldparentid);
+
             if ($this->oldparentid === -1) {
                 $this->error('oldcategoryhierarchydoesnotexist', 
                     new lang_string('coldcategoryhierarchydoesnotexist',
@@ -454,7 +458,7 @@ class tool_uploadcoursecategory_category {
                 $this->error('canonlyrenameinupdatemode', 
                     new lang_string('canonlyrenameinupdatemode', 'tool_uploadcoursecategory'));
                 return false;
-            } else if (!$this->exists($this->oldname, $this->oldparentid)) {
+            } else if (!$oldexisting) {
                 $this->error('cannotrenamecategorynotexist',
                     new lang_string('cannotrenamecategorynotexist', 
                         'tool_uploadcoursecategory'));
@@ -464,11 +468,19 @@ class tool_uploadcoursecategory_category {
                     new lang_string('categoryrenamingnotallowed', 
                         'tool_uploadcoursecategory'));
                 return false;
-            } else if ($this->exists($this->name)) {
+            } else if ($this->existing) {
                 $this->error('cannotrenamenamealreadyinuse',
                     new lang_string('cannotrenamenamealreadyinuse', 
                         'tool_uploadcoursecategory'));
                 return false;
+            } else if (isset($this->rawdata['idnumber'])) {
+                // If category id belong to another category
+                if ($oldexisting->id !== $this->rawdata['idnumber'] &&
+                        $DB->record_exists('course_categories', array('idnumber' => $this->rawdata['idnumber']))) {
+                    $this->error('idnumberalreadyexists', new lang_string('idnumberalreadyexists', 
+                        'tool_uploadcoursecategory'));
+                    return false;
+                }
             }
         }
 
