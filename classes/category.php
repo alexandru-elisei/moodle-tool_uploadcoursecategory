@@ -443,7 +443,7 @@ class tool_uploadcoursecategory_category {
         if (!empty($this->rawdata['oldname'])) {
             $categories = explode('/', $this->rawdata['oldname']);
             $this->oldname = array_pop($categories);
-            $this->oldparentid = $this->prepare_parent($categories, $this->oldparentid);
+            $this->oldparentid = $this->prepare_parent($ategories, $this->oldparentid);
 
             if ($this->oldparentid === -1) {
                 $this->error('oldcategoryhierarchydoesnotexist', 
@@ -454,7 +454,7 @@ class tool_uploadcoursecategory_category {
                 $this->error('canonlyrenameinupdatemode', 
                     new lang_string('canonlyrenameinupdatemode', 'tool_uploadcoursecategory'));
                 return false;
-            } else if (!$this->exists($oldname)) {
+            } else if (!$this->exists($this->oldname, $this->oldparentid)) {
                 $this->error('cannotrenamecategorynotexist',
                     new lang_string('cannotrenamecategorynotexist', 
                         'tool_uploadcoursecategory'));
