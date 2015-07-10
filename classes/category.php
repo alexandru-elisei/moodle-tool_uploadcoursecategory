@@ -58,7 +58,10 @@ class tool_uploadcoursecategory_category {
     protected $id;
 
     /** @var int the ID of the course category parent, default 0 ("Top"). */
-    protected $parent = 0;
+    protected $parentid = 0;
+    
+    /** @var int the ID of the old category parent, default 0 ("Top"). */
+    protected $oldparentid = 0;
 
     /** @var array containing options passed from the processor. */
     protected $importoptions = array();
@@ -86,6 +89,9 @@ class tool_uploadcoursecategory_category {
 
     /** @var string category name. */
     protected $name;
+
+    /** @var string old category name. */
+    protected $oldname;
 
     /** @var array fields allowed as course category data. */
     static protected $validfields = array('name', 'description', 'idnumber',
@@ -161,28 +167,28 @@ class tool_uploadcoursecategory_category {
      * Return the course category database entry, or null.
      *
      * @param string $name the name to use to check if the category exists.
-     * @param int $parent the id of the parent.
+     * @param int $parentid the id of the parent.
      * @return bool
      */
-    protected function exists($name = null, $parent = null) {
+    protected function exists($name = null, $parentid = null) {
         global $DB;
 
         if (is_null($name)) {
             $name = $this->name;
         }
-        if (is_null($parent)) {
-            $parent = $this->parent;
+        if (is_null($parentid)) {
+            $parentid = $this->parentid;
         }
         return $DB->get_record('course_categories', array('name' => $name,
-                'parent' => $parent));
+                'parent' => $parentid));
     }
 
     /**
-     * Extracts the parent and validates the category hierarchy.
+     * Extracts the parentid and validates the category hierarchy.
      *
-     * @return int id of the parent, -1 if one of the parents doesn't exist.
+     * @return int id of the parent, -1 if one of the parent doesn't exist.
      */
-    protected function prepare_parent($categories = null, $parent = null) {
+    protected function prepare_parent($categories = null, $parentid = null) {
         global $DB;
 
         if (is_null($categories)) {
@@ -190,14 +196,14 @@ class tool_uploadcoursecategory_category {
             // Removing from hierarchy the category we wish to create/modify
             array_pop($categories);
         }
-        if (is_null($parent)) {
-            $parent = &$this->parent;
+        if (is_null($parentid)) {
+            $parentid = &$this->parentid;
         }
 
         print "\nCategories:\n";
         var_dump($categories);
 
-        print "\nStarting parent = $parent\n";
+        print "\nStarting parentid = $parentid\n";
         
         // Removing "Top" parent category
         if (count($categories) > 0) {
@@ -214,18 +220,18 @@ class tool_uploadcoursecategory_category {
                 print "\ncat = $cat\n";
 
                 $category = $DB->get_record('course_categories', 
-                        array('name' => $cat, 'parent' => $parent));
+                        array('name' => $cat, 'parent' => $parentid));
                 if (empty($category)) {
                     return -1;
                 }
 
                 print "\ncategory->id = $category->id\n";
 
-                $parent = $category->id;
+                $parentid = $category->id;
             }
         }
 
-        return $parent;
+        return $parentid;
     }
 
     /**
@@ -435,12 +441,16 @@ class tool_uploadcoursecategory_category {
         
         // Can the category be renamed?
         if (!empty($this->rawdata['oldname'])) {
-            $oldname_cat = explode('/', $this->rawdata['oldname']);
-            $oldname = array_pop($oldname_cat);
+            $categories = explode('/', $this->rawdata['oldname']);
+            $this->oldname = array_pop($categories);
+            $this->oldparentid = $this->prepare_parent($categories, $this->oldparentid);
 
-            print "\noldname: $oldname, new name: $this->name\n";
-
-            if (!$this->can_update()) {
+            if ($this->oldparentid === -1) {
+                $this->error('oldcategoryhierarchydoesnotexist', 
+                    new lang_string('coldcategoryhierarchydoesnotexist',
+                        'tool_uploadcoursecategory'));
+                return false;
+            } else if (!$this->can_update()) {
                 $this->error('canonlyrenameinupdatemode', 
                     new lang_string('canonlyrenameinupdatemode', 'tool_uploadcoursecategory'));
                 return false;
