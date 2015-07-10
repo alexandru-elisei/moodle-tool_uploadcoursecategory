@@ -135,12 +135,6 @@ class tool_uploadcoursecategory_category {
 
         // Copy import options.
         $this->importoptions = $importoptions;
-
-        print "\nImportoptions:\n";
-        var_dump($this->importoptions);
-        print "\nOptions:\n";
-        var_dump($this->options);
-        print "\n";
     }
 
     /**
@@ -245,8 +239,7 @@ class tool_uploadcoursecategory_category {
     protected function can_create() {
         return in_array($this->mode, array(tool_uploadcoursecategory_processor::MODE_CREATE_ALL,
             tool_uploadcoursecategory_processor::MODE_CREATE_NEW,
-            tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE)
-        );
+            tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE));
     }
 
     /**
@@ -259,7 +252,7 @@ class tool_uploadcoursecategory_category {
                 array(
                     tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY,
                     tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE)
-                ) && $this->updatemode != tool_uploadcoursecategory_processor::UPDATE_NOTHING;
+                ) && $this->updatemode !== tool_uploadcoursecategory_processor::UPDATE_NOTHING;
     }
 
     /**
@@ -423,13 +416,7 @@ class tool_uploadcoursecategory_category {
 
         }
          */
-
-        print "\nPrepare importoptions:\n";
-        var_dump($this->importoptions);
-        print "\n";
-
-        print "\nallowrenames = $this->importoptions['allowrenames']\n";
-
+        
         // Can the category be renamed?
         if (!empty($this->rawdata['oldname'])) {
             $oldname = $this->rawdata['oldname'];
@@ -456,6 +443,7 @@ class tool_uploadcoursecategory_category {
                         'tool_uploadcoursecategory'));
                 return false;
             }
+        }
 
                 /*
             } else if (isset($coursedata['idnumber']) &&
@@ -468,7 +456,6 @@ class tool_uploadcoursecategory_category {
             $this->status('courserenamed', new lang_string('courserenamed', 'tool_uploadcourse',
                 array('from' => $this->shortname, 'to' => $coursedata['shortname'])));
                  */
-        }
 
         print "\nCan rename!\n";
 

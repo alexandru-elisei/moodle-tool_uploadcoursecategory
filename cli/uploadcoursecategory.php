@@ -92,9 +92,12 @@ if ($options['help']) {
 echo "Moodle course category uploader running ...\n";
 
 $processoroptions = array(
-    'allowdeletes' => core_text::strtolower($options['allowdeletes']) === 'true',
-    'allowrenames' => core_text::strtolower($options['allowrenames']) === 'true',
-    'standardise' => core_text::$options['standardise'] === 'true',
+    'allowdeletes' => (is_bool($options['allowdeletes']) && $options['allowdeletes']
+        ) || (core_text::strtolower($options['allowdeletes']) === 'true'),
+    'allowrenames' => (is_bool($options['allowrenames']) && $options['allowrenames']
+        ) || (core_text::strtolower($options['allowrenames']) === 'true'),
+    'standardise' => (is_bool($options['standardise']) && $options['standardise']
+        ) || (core_text::strtolower($options['standardise']) === 'true'),
     //'shortnametemplate' => $options['shortnametemplate']
 );
 
@@ -162,10 +165,6 @@ if ($readcount === false) {
     print_error('csvemptyfile', 'error', '', $cir->get_error());
 }
 unset($content);
-
-print "\nprocessorsoption:\n";
-var_dump($processoroptions);
-print "\n";
 
 $processor = new tool_uploadcoursecategory_processor($cir, $processoroptions);
 $processor->execute();
