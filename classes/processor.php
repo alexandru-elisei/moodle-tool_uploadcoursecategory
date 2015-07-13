@@ -175,13 +175,13 @@ class tool_uploadcoursecategory_processor {
 
             $data = $this->parse_line($line);
 
-            print "\nData is:\n";
+            print "\nPROCESSOR::Data is:\n";
             print_r($data);
 
             $categ_test = $this->get_coursecategory($data);
 
             if ($categ_test->prepare()) {
-                //$categ_test->proceed();
+                $categ_test->proceed();
 
                 print "\n\nPrepared !!!!\n";
 
