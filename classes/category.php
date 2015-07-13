@@ -409,28 +409,25 @@ class tool_uploadcoursecategory_category {
             // If I cannot create the course, or I'm in update-only mode and I'm 
             // not renaming
             if (!$this->can_create() && 
-                $this->mode === tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY &&
-                !isset($this->rawdata['oldname'])) {
+                    $this->mode === tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY &&
+                    !isset($this->rawdata['oldname'])) {
                 $this->error('categorydoesnotexistandcreatenotallowed',
                     new lang_string('categorydoesnotexistandcreatenotallowed', 
                         'tool_uploadcoursecategory'));
                 return false;
             }
         }
-        
-        // Check if idnumber already exists, idnumber updating not allowed
-        /*
-        if ($this->existing && isset($this->rawdata['idnumber']) &&
-                $DB->record_exists('course_categories', array('idnumber' => $thos->rawdata['idnumber']))) {
-            $this->error('idnumbernotunique', new lang_string('idnumbernotunique',
-                'tool_uploadcoursecategory'));
-            return false;
 
-            print "\ncategory id check passed\n";
-
+        // Final category data.
+        $finaldata = array();
+        // Copying rawdata
+        foreach ($this->rawdata as $field => $value) {
+            if (!in_array($field, self::$validfields)) {
+                continue;
+            }
+            $finaldata[$field] = $value;
         }
-         */
-        
+       
         // Can the category be renamed?
         if (!empty($this->rawdata['oldname'])) {
             $categories = explode('/', $this->rawdata['oldname']);
@@ -506,17 +503,17 @@ class tool_uploadcoursecategory_category {
 
             print "\nAfter incrementing: name = $this->name, idnumber: \n";
             var_dump($this->rawdata['idnumber']);
-        }
+        }  
 
-        // If the course does not exist, ensure that the ID number is not taken.
-        /*
-        if (!$exists && isset($coursedata['idnumber'])) {
-            if ($DB->count_records_select('course', 'idnumber = :idn', array('idn' => $coursedata['idnumber'])) > 0) {
-                $this->error('idnumberalreadyinuse', new lang_string('idnumberalreadyinuse', 'tool_uploadcourse'));
-                return false;
-            }
+        // Check if idnumber is already taken
+        if (!$this->existing && isset($this->rawdata['idnumber']) &&
+                $DB->record_exists('course_categories', array('idnumber' => $this->rawdata['idnumber']))) {
+            $this->error('idnumbernotunique', new lang_string('idnumbernotunique',
+                'tool_uploadcoursecategory'));
+            return false;
+
+            print "\ncategory id check passed\n";
         }
-         */
 
         // Ultimate check mode vs. existence.
         switch ($this->mode) {
