@@ -55,6 +55,9 @@ class tool_uploadcoursecategory_category {
     /** @var array errors. */
     protected $errors = array();
 
+    /** @var array default values. */
+    protected $defaults = array();
+
     /** @var int the ID of the course category that had been processed. */
     protected $id;
 
@@ -79,7 +82,7 @@ class tool_uploadcoursecategory_category {
     /** @var int constant value of self::DO_*, what to do with that course category */
     protected $do;
 
-    /** @var object database record of an existing category */
+    /** @var array database record of an existing category */
     protected $existing = null;
 
     /** @var bool set to true once we have prepared the course category */
@@ -442,8 +445,6 @@ class tool_uploadcoursecategory_category {
             $oldparentid = $this->prepare_parent($categories, 0);
             $this->existing = $this->exists($oldname, $oldparentid);
 
-            var_dump($this->existing);
-
             if ($oldparentid === -1) {
                 $this->error('oldcategoryhierarchydoesnotexist', 
                     new lang_string('coldcategoryhierarchydoesnotexist',
@@ -475,6 +476,7 @@ class tool_uploadcoursecategory_category {
 
             print "\nCan rename!\n"; 
             // All the needed operations for renaming are done.
+            $finaldata = $this->get_final_update_data($finaldata, $this->existing);
             $this->do = self::$DO_UPDATE;
             return true;
         }
@@ -507,6 +509,8 @@ class tool_uploadcoursecategory_category {
             print "\nAfter incrementing: name = $this->name, idnumber: \n";
             var_dump($finaldata['idnumber']);
         }  
+
+        print "\nAfter incrementing\n";
 
         // Check if idnumber is already taken
         if (!$this->existing && isset($finaldata['idnumber']) &&
@@ -554,54 +558,96 @@ class tool_uploadcoursecategory_category {
         }
 
         // Get final data.
-        /*
         if ($this->existing) {
-            $missingonly = ($updatemode === tool_uploadcourse_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAUTLS);
-            $coursedata = $this->get_final_update_data($coursedata, $usedefaults, $missingonly);
+            $missingonly = ($updatemode === tool_uploadcoursecategory_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
+
+            print "\nCoursdata before getting final update data:\n";
+            var_dump($finaldata);
+
+            $finaldata = $this->get_final_update_data($finaldata, $this->existing, $this->defaults, $missingonly);
 
             // Make sure we are not trying to mess with the front page, though we should never get here!
-            if ($coursedata['id'] == $SITE->id) {
-                $this->error('cannotupdatefrontpage', new lang_string('cannotupdatefrontpage', 'tool_uploadcourse'));
+            if ($finaldata['id'] == $SITE->id) {
+                $this->error('cannotupdatefrontpage', new lang_string('cannotupdatefrontpage', 
+                    'tool_uploadcoursecategory'));
                 return false;
             }
 
             $this->do = self::DO_UPDATE;
         } else {
-            $coursedata = $this->get_final_create_data($coursedata);
+            $finaldata = $this->get_final_create_data($coursedata);
             $this->do = self::DO_CREATE;
         }
 
-        // Some validation.
-        if (!empty($coursedata['format']) && !in_array($coursedata['format'], tool_uploadcourse_helper::get_course_formats())) {
-            $this->error('invalidcourseformat', new lang_string('invalidcourseformat', 'tool_uploadcourse'));
-            return false;
-        }
-
         // Saving data.
-        $this->data = $coursedata;
-        $this->enrolmentdata = tool_uploadcourse_helper::get_enrolment_data($this->rawdata);
+        $this->finaldata = $finaldata;
 
         // Restore data.
         // TODO Speed up things by not really extracting the backup just yet, but checking that
         // the backup file or shortname passed are valid. Extraction should happen in proceed().
+        /*
         $this->restoredata = $this->get_restore_content_dir();
         if ($this->restoredata === false) {
             return false;
-        }
-
-        // We can only reset courses when allowed and we are updating the course.
-        if ($this->importoptions['reset'] || $this->options['reset']) {
-            if ($this->do !== self::DO_UPDATE) {
-                $this->error('canonlyresetcourseinupdatemode',
-                    new lang_string('canonlyresetcourseinupdatemode', 'tool_uploadcourse'));
-                return false;
-            } else if (!$this->can_reset()) {
-                $this->error('courseresetnotallowed', new lang_string('courseresetnotallowed', 'tool_uploadcourse'));
-                return false;
-            }
-        }
          */
+
+        print "\nFinal data to be written to database:\n";
+        var_dump($this->finaldata);
 
         return true;
     }
+
+    /**
+     * Assemble the category data.
+     *
+     * This returns the final data to be passed to update_category().
+     *
+     * @param array $finaldata current data.
+     * @param bool $usedefaults are defaults allowed?
+     * @param array $existingdata existing category data.
+     * @param bool $missingonly ignore fields which are already set.
+     * @return array
+     */
+    protected function get_final_update_data($data, $existingdata, $usedefaults = false, $missingonly = false) {
+        global $DB;
+
+        $newdata = array();
+        foreach (self::$validfields as $field) {
+            if ($missingonly) {
+                if (!is_null($existingdata->$field) and $existingdata->$field !== '') {
+                    continue;
+                }
+            }
+            if (isset($data[$field])) {
+                $newdata[$field] = $data[$field];
+            } else if ($usedefaults && isset($this->defaults[$field])) {
+                $newdata[$field] = $this->defaults[$field];
+            }
+        }
+        $newdata['id'] =  $existingdata->id;
+
+        return $newdata;
+    }
+
+    /**
+     * Assemble the course category data based on defaults.
+     *
+     * This returns the final data to be passed to create_category().
+     *
+     * @param array data current data.
+     * @return array
+     */
+    protected function get_final_create_data($data) {
+        foreach (self::$validfields as $field) {
+            if (!isset($data[$field]) && isset($this->defaults[$field])) {
+                $data[$field] = $this->defaults[$field];
+            }
+        }
+        // If we incremented the name
+        $data['name'] = $this->name;
+
+        return $data;
+    }
+
+
 }
