@@ -429,14 +429,22 @@ class tool_uploadcoursecategory_category {
         }
        
         // Can the category be renamed?
-        if (!empty($this->rawdata['oldname'])) {
-            $categories = explode('/', $this->rawdata['oldname']);
-            $this->oldname = array_pop($categories);
-            $this->oldparentid = $this->prepare_parent($ategories, $this->oldparentid);
+        if (!empty($finaldata['oldname'])) {
+            if ($this->existing) {
+                $this->error('cannotrenamenamealreadyinuse',
+                    new lang_string('cannotrenamenamealreadyinuse', 
+                        'tool_uploadcoursecategory'));
+                return false;
+            }
 
-            $oldexisting = $this->exists($this->oldname, $this->oldparentid);
+            $categories = explode('/', $finaldata['oldname']);
+            $oldname = array_pop($categories);
+            $oldparentid = $this->prepare_parent($categories, 0);
+            $this->existing = $this->exists($oldname, $oldparentid);
 
-            if ($this->oldparentid === -1) {
+            var_dump($this->existing);
+
+            if ($oldparentid === -1) {
                 $this->error('oldcategoryhierarchydoesnotexist', 
                     new lang_string('coldcategoryhierarchydoesnotexist',
                         'tool_uploadcoursecategory'));
@@ -445,9 +453,9 @@ class tool_uploadcoursecategory_category {
                 $this->error('canonlyrenameinupdatemode', 
                     new lang_string('canonlyrenameinupdatemode', 'tool_uploadcoursecategory'));
                 return false;
-            } else if (!$oldexisting) {
-                $this->error('cannotrenamecategorynotexist',
-                    new lang_string('cannotrenamecategorynotexist', 
+            } else if (!$this->existing) {
+                $this->error('cannotrenameoldcategorynotexist',
+                    new lang_string('cannotrenameoldcategorynotexist', 
                         'tool_uploadcoursecategory'));
                 return false;
             } else if (!$this->can_rename()) {
@@ -455,15 +463,10 @@ class tool_uploadcoursecategory_category {
                     new lang_string('categoryrenamingnotallowed', 
                         'tool_uploadcoursecategory'));
                 return false;
-            } else if ($this->existing) {
-                $this->error('cannotrenamenamealreadyinuse',
-                    new lang_string('cannotrenamenamealreadyinuse', 
-                        'tool_uploadcoursecategory'));
-                return false;
             } else if (isset($this->rawdata['idnumber'])) {
                 // If category id belongs to another category
-                if ($oldexisting->id !== $this->rawdata['idnumber'] &&
-                        $DB->record_exists('course_categories', array('idnumber' => $this->rawdata['idnumber']))) {
+                if ($this->existing->idnumber !== $finaldata['idnumber'] &&
+                        $DB->record_exists('course_categories', array('idnumber' => $finaldata['idnumber']))) {
                     $this->error('idnumberalreadyexists', new lang_string('idnumberalreadyexists', 
                         'tool_uploadcoursecategory'));
                     return false;
