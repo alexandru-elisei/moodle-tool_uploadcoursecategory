@@ -494,9 +494,9 @@ class tool_uploadcoursecategory_category {
             if ($this->name != $original) {
                 //$this->status('courseshortnameincremented', new lang_string('courseshortnameincremented', 'tool_uploadcourse',
                  //   array('from' => $original, 'to' => $this->shortname)));
-                if (isset($this->rawdata['idnumber'])) {
-                    $originalidn = $this->rawdata['idnumber'];
-                    $this->rawdata['idnumber'] = cc_increment_idnumber($this->rawdata['idnumber']);
+                if (isset($finaldata['idnumber'])) {
+                    $originalidn = $finaldata['idnumber'];
+                    $finaldata['idnumber'] = cc_increment_idnumber($finaldata['idnumber']);
                     //if ($originalidn != $coursedata['idnumber']) {
                   //      $this->status('courseidnumberincremented', new lang_string('courseidnumberincremented', 'tool_uploadcourse',
                    //         array('from' => $originalidn, 'to' => $coursedata['idnumber'])));
@@ -505,12 +505,12 @@ class tool_uploadcoursecategory_category {
             }
 
             print "\nAfter incrementing: name = $this->name, idnumber: \n";
-            var_dump($this->rawdata['idnumber']);
+            var_dump($finaldata['idnumber']);
         }  
 
         // Check if idnumber is already taken
-        if (!$this->existing && isset($this->rawdata['idnumber']) &&
-                $DB->record_exists('course_categories', array('idnumber' => $this->rawdata['idnumber']))) {
+        if (!$this->existing && isset($finaldata['idnumber']) &&
+                $DB->record_exists('course_categories', array('idnumber' => $finaldata['idnumber']))) {
             $this->error('idnumbernotunique', new lang_string('idnumbernotunique',
                 'tool_uploadcoursecategory'));
             return false;
@@ -538,7 +538,7 @@ class tool_uploadcoursecategory_category {
                 }
                 // No break!
             case tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE:
-                if ($this->exists) {
+                if ($this->existing) {
                     if ($updatemode === tool_uploadcoursecategory_processor::UPDATE_NOTHING) {
                         $this->error('updatemodedoessettonothing',
                             new lang_string('updatemodedoessettonothing', 'tool_uploadcoursecategory'));
@@ -569,24 +569,6 @@ class tool_uploadcoursecategory_category {
         } else {
             $coursedata = $this->get_final_create_data($coursedata);
             $this->do = self::DO_CREATE;
-        }
-
-        // Course start date.
-        if (!empty($coursedata['startdate'])) {
-            $coursedata['startdate'] = strtotime($coursedata['startdate']);
-        }
-
-        // Add role renaming.
-        $errors = array();
-        $rolenames = tool_uploadcourse_helper::get_role_names($this->rawdata, $errors);
-        if (!empty($errors)) {
-            foreach ($errors as $key => $message) {
-                $this->error($key, $message);
-            }
-            return false;
-        }
-        foreach ($rolenames as $rolekey => $rolename) {
-            $coursedata[$rolekey] = $rolename;
         }
 
         // Some validation.
