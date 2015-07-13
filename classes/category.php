@@ -24,6 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
+require_once('../locallib.php');
 require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->libdir . '/coursecatlib.php');
 
@@ -200,11 +201,6 @@ class tool_uploadcoursecategory_category {
             $parentid = &$this->parentid;
         }
 
-        print "\nCategories:\n";
-        var_dump($categories);
-
-        print "\nStarting parentid = $parentid\n";
-        
         // Removing "Top" parent category
         if (count($categories) > 0) {
             if ($categories[0] == get_string('top')) {
@@ -216,17 +212,11 @@ class tool_uploadcoursecategory_category {
         if (count($categories) > 0) {
             foreach ($categories as $cat) {
                 $cat = trim($cat);
-
-                print "\ncat = $cat\n";
-
                 $category = $DB->get_record('course_categories', 
                         array('name' => $cat, 'parent' => $parentid));
                 if (empty($category)) {
                     return -1;
                 }
-
-                print "\ncategory->id = $category->id\n";
-
                 $parentid = $category->id;
             }
         }
@@ -371,7 +361,7 @@ class tool_uploadcoursecategory_category {
                 'tool_uploadcoursecategory'));
             return false;
         }
-        $this->rawdata['idnumber'] = (int) $this->rawdata['idnumber'];
+        //$this->rawdata['idnumber'] = (int) $this->rawdata['idnumber'];
         
 
         // Standardise name
@@ -474,7 +464,7 @@ class tool_uploadcoursecategory_category {
                         'tool_uploadcoursecategory'));
                 return false;
             } else if (isset($this->rawdata['idnumber'])) {
-                // If category id belong to another category
+                // If category id belongs to another category
                 if ($oldexisting->id !== $this->rawdata['idnumber'] &&
                         $DB->record_exists('course_categories', array('idnumber' => $this->rawdata['idnumber']))) {
                     $this->error('idnumberalreadyexists', new lang_string('idnumberalreadyexists', 
@@ -483,8 +473,7 @@ class tool_uploadcoursecategory_category {
                 }
             }
 
-            print "\nCan rename!\n";
-
+            print "\nCan rename!\n"; 
             // All the needed operations for renaming are done.
             $this->do = self::$DO_UPDATE;
             return true;
@@ -494,70 +483,79 @@ class tool_uploadcoursecategory_category {
             array('from' => $this->shortname, 'to' => $coursedata['shortname'])));
              */
 
+        print "\nBefore incrementing...\n";
 
         // If exists, but we only want to create categories, increment the name.
-        /*
-  
         if ($this->existing && $this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_ALL) {
-            $original = $this->shortname;
-            $this->shortname = tool_uploadcourse_helper::increment_shortname($this->shortname);
-            $exists = false;
-            if ($this->shortname != $original) {
+            $original = $this->name;
+            $this->name = cc_increment_name($this->name);
+            // We are creating a new course category
+            $this->existing = null;
+            if ($this->name != $original) {
                 //$this->status('courseshortnameincremented', new lang_string('courseshortnameincremented', 'tool_uploadcourse',
                  //   array('from' => $original, 'to' => $this->shortname)));
-                if (isset($coursedata['idnumber'])) {
-                    $originalidn = $coursedata['idnumber'];
-                    $coursedata['idnumber'] = tool_uploadcourse_helper::increment_idnumber($coursedata['idnumber']);
-                    if ($originalidn != $coursedata['idnumber']) {
+                if (isset($this->rawdata['idnumber'])) {
+                    $originalidn = $this->rawdata['idnumber'];
+                    $this->rawdata['idnumber'] = cc_increment_idnumber($this->rawdata['idnumber']);
+                    //if ($originalidn != $coursedata['idnumber']) {
                   //      $this->status('courseidnumberincremented', new lang_string('courseidnumberincremented', 'tool_uploadcourse',
                    //         array('from' => $originalidn, 'to' => $coursedata['idnumber'])));
-                    }
+                    //}
                 }
             }
+
+            print "\nAfter incrementing: name = $this->name, idnumber: \n";
+            var_dump($this->rawdata['idnumber']);
         }
 
         // If the course does not exist, ensure that the ID number is not taken.
+        /*
         if (!$exists && isset($coursedata['idnumber'])) {
             if ($DB->count_records_select('course', 'idnumber = :idn', array('idn' => $coursedata['idnumber'])) > 0) {
                 $this->error('idnumberalreadyinuse', new lang_string('idnumberalreadyinuse', 'tool_uploadcourse'));
                 return false;
             }
         }
+         */
 
         // Ultimate check mode vs. existence.
-        switch ($mode) {
-            case tool_uploadcourse_processor::MODE_CREATE_NEW:
-            case tool_uploadcourse_processor::MODE_CREATE_ALL:
-                if ($exists) {
-                    $this->error('courseexistsanduploadnotallowed',
-                        new lang_string('courseexistsanduploadnotallowed', 'tool_uploadcourse'));
+        switch ($this->mode) {
+            case tool_uploadcoursecategory_processor::MODE_CREATE_NEW:
+            case tool_uploadcoursecategory_processor::MODE_CREATE_ALL:
+                if ($this->existing) {
+                    $this->error('categoryexistsanduploadnotallowed',
+                        new lang_string('categoryexistsanduploadnotallowed', 
+                            'tool_uploadcoursecategory'));
                     return false;
                 }
                 break;
-            case tool_uploadcourse_processor::MODE_UPDATE_ONLY:
-                if (!$exists) {
-                    $this->error('coursedoesnotexistandcreatenotallowed',
-                        new lang_string('coursedoesnotexistandcreatenotallowed', 'tool_uploadcourse'));
+            case tool_uploadcoursecategory_processor::MODE_UPDATE_ONLY:
+                if (!$this->existing) {
+                    $this->error('categorydoesnotexistandcreatenotallowed',
+                        new lang_string('categorydoesnotexistandcreatenotallowed',
+                            'tool_uploadcoursecategory'));
                     return false;
                 }
                 // No break!
-            case tool_uploadcourse_processor::MODE_CREATE_OR_UPDATE:
-                if ($exists) {
-                    if ($updatemode === tool_uploadcourse_processor::UPDATE_NOTHING) {
+            case tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE:
+                if ($this->exists) {
+                    if ($updatemode === tool_uploadcoursecategory_processor::UPDATE_NOTHING) {
                         $this->error('updatemodedoessettonothing',
-                            new lang_string('updatemodedoessettonothing', 'tool_uploadcourse'));
+                            new lang_string('updatemodedoessettonothing', 'tool_uploadcoursecategory'));
                         return false;
                     }
                 }
                 break;
             default:
                 // O_o Huh?! This should really never happen here!
-                $this->error('unknownimportmode', new lang_string('unknownimportmode', 'tool_uploadcourse'));
+                $this->error('unknownimportmode', new lang_string('unknownimportmode', 
+                    'tool_uploadcoursecategory'));
                 return false;
         }
 
         // Get final data.
-        if ($exists) {
+        /*
+        if ($this->existing) {
             $missingonly = ($updatemode === tool_uploadcourse_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAUTLS);
             $coursedata = $this->get_final_update_data($coursedata, $usedefaults, $missingonly);
 
