@@ -309,35 +309,6 @@ class tool_uploadcoursecategory_category {
     }
 
     /**
-     * Proceed with the import of the category.
-     *
-     * @return bool false if an error occured.
-     */
-    public function proceed() {
-        global $CFG, $USER;
-
-        if (!$this->prepared) {
-            throw new coding_exception('The course has not been prepared.');
-        } else if ($this->has_errors()) {
-            throw new moodle_exception('Cannot proceed, errors were detected.');
-        } else if ($this->processstarted) {
-            throw new coding_exception('The process has already been started.');
-        }
-        $this->processstarted = true;
-
-        if ($this->do === self::DO_DELETE) {
-            if (!$this->delete()) {
-                $this->error('errorwhiledeletingcategory', 
-                    new lang_string('errorwhiledeletingcourse', 'tool_uploadcoursecategory'));
-                return false;
-            }
-            $this->processstarted = false;
-
-            return true;
-        }
-    }
-
-    /**
      * Validates and prepares the data.
      *
      * @return bool false is any error occured.
@@ -380,10 +351,11 @@ class tool_uploadcoursecategory_category {
         }
 
         $this->existing = $this->exists();
+        var_dump($this->existing);
 
         // Can we delete the category?
         if (!empty($this->options['deleted'])) {
-            if (is_null($this->existing)) {
+            if (empty($this->existing)) {
                 $this->error('cannotdeletecategorynotexist', new lang_string('cannotdeletecategorynotexist',
                     'tool_uploadcoursecategory'));
                 return false;
@@ -649,5 +621,31 @@ class tool_uploadcoursecategory_category {
         return $data;
     }
 
+    /**
+     * Proceed with the import of the course category.
+     *
+     * @return void
+     */
+    public function proceed() {
+        //global $CFG, $USER;
 
+        if (!$this->prepared) {
+            throw new coding_exception('The course has not been prepared.');
+        } else if ($this->has_errors()) {
+            throw new moodle_exception('Cannot proceed, errors were detected.');
+        } else if ($this->processstarted) {
+            throw new coding_exception('The process has already been started.');
+        }
+        $this->processstarted = true;
+
+        if ($this->do === self::DO_DELETE) {
+            if ($this->delete()) {
+                //$this->status('coursedeleted', new lang_string('coursedeleted', 'tool_uploadcourse'));
+            } else {
+                $this->error('errorwhiledeletingcourse', new lang_string('errorwhiledeletingcourse',
+                    'tool_uploadcoursecategory'));
+            }
+            return true;
+        }
+    }
 }
