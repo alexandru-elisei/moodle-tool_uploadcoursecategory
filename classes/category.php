@@ -655,6 +655,20 @@ class tool_uploadcoursecategory_category {
                 $this->error('errorwhilecreatingcourse', new lang_string('errorwhiledeletingcourse',
                     'tool_uploadcoursecategory'));
             }
+            //$course = create_course((object) $this->data);
+            //$this->id = $course->id;
+            //$this->status('coursecreated', new lang_string('coursecreated', 'tool_uploadcourse'));
+        } else if ($this->do === self::DO_UPDATE) {
+            $cat = coursecat::get($this->existing->id, IGNORE_MISSING, true);
+            try {
+                $cat->update($this->finaldata);
+            }
+            catch (moodle_exception $e) {
+                $this->error('errorwhileupdatingcourse', new lang_string('errorwhileupdatingcourse',
+                    'tool_uploadcoursecategory'));
+            }
+            //$this->id = $cat->id;
+            //$this->status('courseupdated', new lang_string('courseupdated', 'tool_uploadcourse'));
         }
     }
 }
