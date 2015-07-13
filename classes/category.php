@@ -615,6 +615,7 @@ class tool_uploadcoursecategory_category {
                 $data[$field] = $this->defaults[$field];
             }
         }
+        $data['parent'] = $this->parentid;
         // If we incremented the name
         $data['name'] = $this->name;
 
@@ -646,6 +647,14 @@ class tool_uploadcoursecategory_category {
                     'tool_uploadcoursecategory'));
             }
             return true;
+        } else if ($this->do === self::DO_CREATE) {
+            try {
+                coursecat::create($this->finaldata);
+            }
+            catch (moodle_exception $e) {
+                $this->error('errorwhilecreatingcourse', new lang_string('errorwhiledeletingcourse',
+                    'tool_uploadcoursecategory'));
+            }
         }
     }
 }
