@@ -190,9 +190,12 @@ class tool_uploadcoursecategory_category {
     /**
      * Extracts the parentid and validates the category hierarchy.
      *
-     * @return int id of the parent, -1 if one of the parent doesn't exist.
+     * @param string $categories the name hierarchy of the category.
+     * @param int $parentid the id of the parent.
+     * @param bool $createmissing create missing categories in the hierarchy.
+     * @return int id of the parent, -1 if one of the parent doesn't exist and createmissing is set to false.
      */
-    protected function prepare_parent($categories = null, $parentid = null) {
+    protected function prepare_parent($categories = null, $parentid = null, $createmissing = false) {
         global $DB;
 
         if (is_null($categories)) {
@@ -201,7 +204,7 @@ class tool_uploadcoursecategory_category {
             array_pop($categories);
         }
         if (is_null($parentid)) {
-            $parentid = &$this->parentid;
+            $parentid = $this->parentid;
         }
 
         // Removing "Top" parent category
@@ -218,9 +221,35 @@ class tool_uploadcoursecategory_category {
                 $category = $DB->get_record('course_categories', 
                         array('name' => $cat, 'parent' => $parentid));
                 if (empty($category)) {
-                    return -1;
+                    if (!$createmissing) {
+                        return -1;
+                    } else {
+                        $newcat = "";
+                        foreach($categories as $c) {
+                            $c = trim($c);
+                            $newcat = $newcat.'/'.$c;
+                            if ($c == $cat) {
+                                break;
+                            }
+                        }
+                        $newcat = substr($newcat, 1);
+                        $newdata = array('name' => $newcat);
+                        $newcat = new tool_uploadcoursecategory_category(
+                            tool_uploadcoursecategory_processor::MODE_CREATE_NEW,
+                            tool_uploadcoursecategory_processor::UPDATE_NOTHING,
+                            $newdata
+                        );
+                        if ($newcat->prepare()) {
+                            $newcat->proceed();
+                            $parentid = $newcat->id;
+                            // Something about errors and tracking here.
+                        } else {
+                            return -1;
+                        }
+                    }
+                } else {
+                    $parentid = $category->id;
                 }
-                $parentid = $category->id;
             }
         }
 
@@ -344,15 +373,15 @@ class tool_uploadcoursecategory_category {
         }
 
         // Validate parent hierarchy.
-        if($this->prepare_parent() === -1) {
+        $this->parentid = $this->prepare_parent(null, null, true);
+        if ($this->parentid === -1) {
             $this->error('missingcategoryparent', new lang_string('missingcategoryparent',
                 'tool_uploadcoursecategory'));
             return false;
         }
 
         $this->existing = $this->exists();
-        var_dump($this->existing);
-
+        
         // Can we delete the category?
         if (!empty($this->options['deleted'])) {
             if (empty($this->existing)) {
@@ -639,6 +668,8 @@ class tool_uploadcoursecategory_category {
         }
         $this->processstarted = true;
 
+        print "\n==CATEGORY== Entering proceed...\n";
+
         if ($this->do === self::DO_DELETE) {
             if ($this->delete()) {
                 //$this->status('coursedeleted', new lang_string('coursedeleted', 'tool_uploadcourse'));
@@ -649,7 +680,13 @@ class tool_uploadcoursecategory_category {
             return true;
         } else if ($this->do === self::DO_CREATE) {
             try {
-                coursecat::create($this->finaldata);
+                print "before create\n";
+                var_dump($this->finaldata);
+
+                $newcat = coursecat::create($this->finaldata); 
+                $this->id = $newcat->id;
+
+                print "after create, this->id = $this->id\n";
             }
             catch (moodle_exception $e) {
                 $this->error('errorwhilecreatingcourse', new lang_string('errorwhiledeletingcourse',
