@@ -215,6 +215,7 @@ class tool_uploadcoursecategory_category {
         }
 
         // Walking the hierarchy to check if parents exist
+        $depth = 1;
         if (count($categories) > 0) {
             foreach ($categories as $cat) {
                 $cat = trim($cat);
@@ -224,16 +225,9 @@ class tool_uploadcoursecategory_category {
                     if (!$createmissing) {
                         return -1;
                     } else {
-                        $newcat = "";
-                        foreach($categories as $c) {
-                            $c = trim($c);
-                            $newcat = $newcat.'/'.$c;
-                            if ($c == $cat) {
-                                break;
-                            }
-                        }
-                        $newcat = substr($newcat, 1);
-                        $newdata = array('name' => $newcat);
+                        $newname = array_slice($categories, 0, $depth);
+                        $newname = implode('/', $newname);
+                        $newdata = array('name' => $newname);
                         $newcat = new tool_uploadcoursecategory_category(
                             tool_uploadcoursecategory_processor::MODE_CREATE_NEW,
                             tool_uploadcoursecategory_processor::UPDATE_NOTHING,
@@ -250,6 +244,7 @@ class tool_uploadcoursecategory_category {
                 } else {
                     $parentid = $category->id;
                 }
+                $depth++;
             }
         }
 
