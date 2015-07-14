@@ -90,6 +90,9 @@ class tool_uploadcoursecategory_processor {
     /** @var bool are to be standardised. */
     protected $standardise;
 
+    /** @var bool create missing parents in category hierarchy. */
+    protected $createmissing;
+
     /** @var csv_import_reader */
     protected $cir;
 
@@ -135,6 +138,10 @@ class tool_uploadcoursecategory_processor {
         }
         if (isset($options['standardise'])) {
             $this->standardise = $options['standardise'];
+        }
+
+        if (isset($options['createmissing'])) {
+            $this->createmissing = $options['createmissing'];
         }
 
         $this->cir = $cir;
@@ -230,7 +237,8 @@ class tool_uploadcoursecategory_processor {
         $importoptions = array(
             'allowdeletes'  => $this->allowdeletes,
             'allowrenames'  => $this->allowrenames,
-            'standardise'   => $this->standardise
+            'standardise'   => $this->standardise,
+            'createmissing' => $this->createmissing,
         );
         return  new tool_uploadcoursecategory_category($this->mode, $this->updatemode, $data, $importoptions);
     }

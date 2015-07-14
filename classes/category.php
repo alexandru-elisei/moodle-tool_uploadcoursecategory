@@ -195,7 +195,7 @@ class tool_uploadcoursecategory_category {
      * @param bool $createmissing create missing categories in the hierarchy.
      * @return int id of the parent, -1 if one of the parent doesn't exist and createmissing is set to false.
      */
-    protected function prepare_parent($categories = null, $parentid = null, $createmissing = false) {
+    protected function prepare_parent($categories = null, $parentid = null) {
         global $DB;
 
         if (is_null($categories)) {
@@ -222,7 +222,7 @@ class tool_uploadcoursecategory_category {
                 $category = $DB->get_record('course_categories', 
                         array('name' => $cat, 'parent' => $parentid));
                 if (empty($category)) {
-                    if (!$createmissing) {
+                    if (!$this->importoptions['createmissing']) {
                         return -1;
                     } else {
                         $newname = array_slice($categories, 0, $depth);
@@ -368,7 +368,7 @@ class tool_uploadcoursecategory_category {
         }
 
         // Validate parent hierarchy.
-        $this->parentid = $this->prepare_parent(null, null, true);
+        $this->parentid = $this->prepare_parent();
         if ($this->parentid === -1) {
             $this->error('missingcategoryparent', new lang_string('missingcategoryparent',
                 'tool_uploadcoursecategory'));

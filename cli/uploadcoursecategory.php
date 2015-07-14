@@ -37,12 +37,10 @@ list($options, $unrecognized) = cli_get_params(array(
     'file' => '',
     'delimiter' => 'comma',
     'encoding' => 'UTF-8',
-    //'shortnametemplate' => '',
-    //'templatecourse' => false,
-    //'restorefile' => false,
     'allowdeletes' => false,
     'allowrenames' => false,
-    'standardise' => true
+    'standardise' => true,
+    'createmissing' => false
 ),
 array(
     'h' => 'help',
@@ -51,8 +49,6 @@ array(
     'f' => 'file',
     'd' => 'delimiter',
     'e' => 'encoding',
-    //'t' => 'templatecourse',
-    //'r' => 'restorefile'
 ));
 
 
@@ -66,12 +62,10 @@ Options:
 -f, --file                 CSV file
 -d, --delimiter            CSV delimiter: colon, semicolon, tab, cfg, comma (default)
 -e, --encoding             CSV file encoding: utf8 (default), ... etc
-//-t, --templatecourse       Shortname of the course to restore after import
-//-r, --restorefile          Backup file to restore after import
 --allowdeletes             Allow courses to be deleted: true or false (default)
 --allowrenames             Allow courses to be renamed: true or false (default)
-//--shortnametemplate        Template to generate the shortname from
 --standardise              Standardise category names: true (default) or false
+--createmissing            Create missing parents in the hierarchy: true or false (default)
 
 
 Example:
@@ -98,7 +92,8 @@ $processoroptions = array(
         ) || (core_text::strtolower($options['allowrenames']) === 'true'),
     'standardise' => (is_bool($options['standardise']) && $options['standardise']
         ) || (core_text::strtolower($options['standardise']) === 'true'),
-    //'shortnametemplate' => $options['shortnametemplate']
+    'createmissing' => (is_bool($options['createmissing']) && $options['createmissing']
+        ) || (core_text::strtolower($options['createmissing']) === 'true'),
 );
 
 // Confirm that the mode is valid.
@@ -165,6 +160,9 @@ if ($readcount === false) {
     print_error('csvemptyfile', 'error', '', $cir->get_error());
 }
 unset($content);
+
+print "\n=UPLOADCOURSECATEGORY_CLI= processoroptions:\n";
+var_dump($processoroptions);
 
 $processor = new tool_uploadcoursecategory_processor($cir, $processoroptions);
 $processor->execute();
