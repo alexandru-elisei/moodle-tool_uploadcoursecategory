@@ -165,6 +165,11 @@ class tool_uploadcoursecategory_processor {
         }
         $this->processstarted = true;
 
+        if (empty($tracker)) {
+            $tracker = new tool_uploadcoursecategory_tracker(tool_uploadcoursecategory_tracker::OUTPUT_PLAIN);
+        }
+        $tracker->start();
+
         // Statistics for tracker - TO DO!
         $total = 0;
         $created = 0;
@@ -193,7 +198,9 @@ class tool_uploadcoursecategory_processor {
 
                 $categ_test->proceed();
 
-                print "\n\nPrepared !!!!\n";
+                print "\nPrepared..\n";
+
+                $tracker->results($total, 1, 0, 0, 0);
 
             } else {
 

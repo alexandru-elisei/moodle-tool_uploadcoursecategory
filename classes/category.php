@@ -171,6 +171,15 @@ class tool_uploadcoursecategory_category {
     }
 
     /**
+     * Return the errors found during preparation.
+     *
+     * @return array
+     */
+    public function get_statuses() {
+        return $this->statuses;
+    }
+
+    /**
      * Return the course category database entry, or null.
      *
      * @param string $name the name to use to check if the category exists.
