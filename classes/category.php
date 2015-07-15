@@ -442,12 +442,12 @@ class tool_uploadcoursecategory_category {
             }
             $finaldata[$field] = $value;
         }
+        $finaldata['name'] = $this->name;
        
         // Can the category be renamed?
         if (!empty($finaldata['oldname'])) {
 
-            print "\nEntering rename checks...\n";
-
+            print "\nEntering rename...\n";
             if ($this->existing) {
                 $this->error('cannotrenamenamealreadyinuse',
                     new lang_string('cannotrenamenamealreadyinuse', 
@@ -455,13 +455,43 @@ class tool_uploadcoursecategory_category {
                 return false;
             }
 
-            print "\nthis->do = ";
-            var_dump($this->do);
+            $categories = explode('/', $finaldata['oldname']);
+            $oldname = array_pop($categories);
+            $oldparentid = $this->prepare_parent($categories, 0);
+            $this->existing = $this->exists($oldname, $oldparentid);
 
-            $this->do = self::$DO_UPDATE;
+            if ($oldparentid === -1) {
+                $this->error('oldcategoryhierarchydoesnotexist', 
+                    new lang_string('coldcategoryhierarchydoesnotexist',
+                        'tool_uploadcoursecategory'));
+                return false;
+            } else if (!$this->can_update()) {
+                $this->error('canonlyrenameinupdatemode', 
+                    new lang_string('canonlyrenameinupdatemode', 'tool_uploadcoursecategory'));
+                return false;
+            } else if (!$this->existing) {
+                $this->error('cannotrenameoldcategorynotexist',
+                    new lang_string('cannotrenameoldcategorynotexist', 
+                        'tool_uploadcoursecategory'));
+                return false;
+            } else if (!$this->can_rename()) {
+                $this->error('categoryrenamingnotallowed',
+                    new lang_string('categoryrenamingnotallowed', 
+                        'tool_uploadcoursecategory'));
+                return false;
+            } else if (isset($this->rawdata['idnumber'])) {
+                // If category id belongs to another category
+                if ($this->existing->idnumber !== $finaldata['idnumber'] &&
+                        $DB->record_exists('course_categories', array('idnumber' => $finaldata['idnumber']))) {
+                    $this->error('idnumberalreadyexists', new lang_string('idnumberalreadyexists', 
+                        'tool_uploadcoursecategory'));
+                    return false;
+                }
+            }
 
-            print "\nthis->do = \n";
-            var_dump($this->do);
+            // All the needed operations for renaming are done.
+            $this->finaldata = $this->get_final_update_data($finaldata, $this->existing);
+            $this->do = self::DO_UPDATE;
 
             return true;
         }
