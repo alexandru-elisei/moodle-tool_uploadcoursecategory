@@ -78,6 +78,9 @@ class tool_uploadcoursecategory_category {
 
     /** @var array course category import options. */
     protected $options = array();
+   
+    /** @var array operations executed. */
+    protected $status = array();
 
     /** @var int constant value of self::DO_*, what to do with that course category */
     protected $do;
@@ -177,14 +180,16 @@ class tool_uploadcoursecategory_category {
     protected function exists($name = null, $parentid = null) {
         global $DB;
 
+        print "\nEntering exists...\n";
+
         if (is_null($name)) {
             $name = $this->name;
         }
         if (is_null($parentid)) {
             $parentid = $this->parentid;
         }
-        return $DB->get_record('course_categories', array('name' => $name,
-                'parent' => $parentid));
+
+        return $DB->get_record('course_categories', array('name' => $name, 'parent' => $parentid));
     }
 
     /**
@@ -255,7 +260,6 @@ class tool_uploadcoursecategory_category {
                 $depth++;
             }
         }
-
         return $parentid;
     }
 
@@ -389,8 +393,6 @@ class tool_uploadcoursecategory_category {
         }
 
         $this->existing = $this->exists();
-
-        print "Checked existing... $this->existing\n";
         
         // Can we delete the category?
         if (!empty($this->options['deleted'])) {
@@ -432,9 +434,8 @@ class tool_uploadcoursecategory_category {
             }
         }
 
-        // Final category data.
+        // Preparing final category data.
         $finaldata = array();
-        // Copying rawdata
         foreach ($this->rawdata as $field => $value) {
             if (!in_array($field, self::$validfields)) {
                 continue;
@@ -444,6 +445,9 @@ class tool_uploadcoursecategory_category {
        
         // Can the category be renamed?
         if (!empty($finaldata['oldname'])) {
+
+            print "\nEntering rename checks...\n";
+
             if ($this->existing) {
                 $this->error('cannotrenamenamealreadyinuse',
                     new lang_string('cannotrenamenamealreadyinuse', 
@@ -451,52 +455,20 @@ class tool_uploadcoursecategory_category {
                 return false;
             }
 
-            $categories = explode('/', $finaldata['oldname']);
-            $oldname = array_pop($categories);
-            $oldparentid = $this->prepare_parent($categories, 0);
-            $this->existing = $this->exists($oldname, $oldparentid);
+            print "\nthis->do = ";
+            var_dump($this->do);
 
-            if ($oldparentid === -1) {
-                $this->error('oldcategoryhierarchydoesnotexist', 
-                    new lang_string('coldcategoryhierarchydoesnotexist',
-                        'tool_uploadcoursecategory'));
-                return false;
-            } else if (!$this->can_update()) {
-                $this->error('canonlyrenameinupdatemode', 
-                    new lang_string('canonlyrenameinupdatemode', 'tool_uploadcoursecategory'));
-                return false;
-            } else if (!$this->existing) {
-                $this->error('cannotrenameoldcategorynotexist',
-                    new lang_string('cannotrenameoldcategorynotexist', 
-                        'tool_uploadcoursecategory'));
-                return false;
-            } else if (!$this->can_rename()) {
-                $this->error('categoryrenamingnotallowed',
-                    new lang_string('categoryrenamingnotallowed', 
-                        'tool_uploadcoursecategory'));
-                return false;
-            } else if (isset($this->rawdata['idnumber'])) {
-                // If category id belongs to another category
-                if ($this->existing->idnumber !== $finaldata['idnumber'] &&
-                        $DB->record_exists('course_categories', array('idnumber' => $finaldata['idnumber']))) {
-                    $this->error('idnumberalreadyexists', new lang_string('idnumberalreadyexists', 
-                        'tool_uploadcoursecategory'));
-                    return false;
-                }
-            }
-
-            print "\nCan rename!\n"; 
-            // All the needed operations for renaming are done.
-            $finaldata = $this->get_final_update_data($finaldata, $this->existing);
             $this->do = self::$DO_UPDATE;
+
+            print "\nthis->do = \n";
+            var_dump($this->do);
+
             return true;
         }
         /*
         $this->status('courserenamed', new lang_string('courserenamed', 'tool_uploadcourse',
             array('from' => $this->shortname, 'to' => $coursedata['shortname'])));
              */
-
-        print "\nBefore incrementing...\n";
 
         // If exists, but we only want to create categories, increment the name.
         if ($this->existing && $this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_ALL) {
@@ -520,8 +492,6 @@ class tool_uploadcoursecategory_category {
             print "\nAfter incrementing: name = $this->name, idnumber: \n";
             var_dump($finaldata['idnumber']);
         }  
-
-        print "\nAfter incrementing\n";
 
         // Check if idnumber is already taken
         if (!$this->existing && isset($finaldata['idnumber']) &&
@@ -669,6 +639,8 @@ class tool_uploadcoursecategory_category {
     public function proceed() {
         //global $CFG, $USER;
 
+        print "\nCATEGORY::Entering proceed...\n";
+
         if (!$this->prepared) {
             throw new coding_exception('The course has not been prepared.');
         } else if ($this->has_errors()) {
@@ -689,14 +661,12 @@ class tool_uploadcoursecategory_category {
         } else if ($this->do === self::DO_CREATE) {
             try {
                 $newcat = coursecat::create($this->finaldata); 
-                $this->id = $newcat->id;
             }
             catch (moodle_exception $e) {
                 $this->error('errorwhilecreatingcourse', new lang_string('errorwhiledeletingcourse',
                     'tool_uploadcoursecategory'));
             }
-            //$course = create_course((object) $this->data);
-            //$this->id = $course->id;
+            $this->id = $newcat->id;
             //$this->status('coursecreated', new lang_string('coursecreated', 'tool_uploadcourse'));
         } else if ($this->do === self::DO_UPDATE) {
             $cat = coursecat::get($this->existing->id, IGNORE_MISSING, true);

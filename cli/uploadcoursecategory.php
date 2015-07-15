@@ -161,9 +161,6 @@ if ($readcount === false) {
 }
 unset($content);
 
-print "\n=UPLOADCOURSECATEGORY_CLI= processoroptions:\n";
-var_dump($processoroptions);
-
 $processor = new tool_uploadcoursecategory_processor($cir, $processoroptions);
 $processor->execute();
 

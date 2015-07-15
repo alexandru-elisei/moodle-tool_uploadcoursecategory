@@ -188,6 +188,9 @@ class tool_uploadcoursecategory_processor {
             $categ_test = $this->get_coursecategory($data);
 
             if ($categ_test->prepare()) {
+
+                print "PROCESSOR::Before proceed...\n";
+
                 $categ_test->proceed();
 
                 print "\n\nPrepared !!!!\n";
