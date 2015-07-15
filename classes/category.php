@@ -180,6 +180,20 @@ class tool_uploadcoursecategory_category {
     }
 
     /**
+     * Log a status
+     *
+     * @param string $code status code.
+     * @param lang_string $message status message.
+     * @return void
+     */
+    protected function set_status($code, lang_string $message) {
+        if (array_key_exists($code, $this->statuses)) {
+            throw new coding_exception('Status code already defined');
+        }
+        $this->statuses[$code] = $message;
+    }
+
+    /**
      * Return the course category database entry, or null.
      *
      * @param string $name the name to use to check if the category exists.
@@ -502,11 +516,12 @@ class tool_uploadcoursecategory_category {
             $this->finaldata = $this->get_final_update_data($finaldata, $this->existing);
             $this->do = self::DO_UPDATE;
 
+            $this->set_status('coursecategoryrenamed', new lang_string('coursecategoryrenamed', 
+                'tool_uploadcoursecategory', array('from' => $oldname, 'to' => $finaldata['name'])));
+
             return true;
         }
         /*
-        $this->status('courserenamed', new lang_string('courserenamed', 'tool_uploadcourse',
-            array('from' => $this->shortname, 'to' => $coursedata['shortname'])));
              */
 
         // If exists, but we only want to create categories, increment the name.

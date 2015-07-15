@@ -198,9 +198,14 @@ class tool_uploadcoursecategory_processor {
 
                 $categ_test->proceed();
 
+                $status = $categ_test->get_statuses();
+
+                print "\nPROCESSOR::status:\n";
+                var_dump($status);
+
                 print "\nPrepared..\n";
 
-                $tracker->results($total, 1, 0, 0, 0);
+                //$tracker->results($total, 1, 0, 0, 0);
 
             } else {
 
