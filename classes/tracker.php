@@ -71,9 +71,6 @@ class tool_uploadcoursecategory_tracker {
      */
     public function __construct($outputmode = self::NO_OUTPUT) {
         $this->outputmode = $outputmode;
-
-        print "\nTRACKER::outputmode = $this->outputmode\n";
-
         if ($this->outputmode == self::OUTPUT_PLAIN) {
             $this->buffer = new progress_trace_buffer(new text_progress_trace());
         }
@@ -88,8 +85,6 @@ class tool_uploadcoursecategory_tracker {
         if ($this->outputmode == self::NO_OUTPUT) {
             return;
         }
-
-        print "\nTRACKER::Entering start...\n";
 
         if ($this->outputmode == self::OUTPUT_PLAIN) {
             $columns = array_flip($this->columns);
