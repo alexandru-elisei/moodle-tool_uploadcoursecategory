@@ -24,6 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/weblib.php');
+require_once($CFG->dirroot . '/course/lib.php');
 
 /**
  * Class output tracker.
@@ -47,7 +48,7 @@ class tool_uploadcoursecategory_tracker {
     /**
      * @var array columns to display.
      */
-    protected $columns = array('line', 'result', 'id', 'name', 'idnumber', 'status');
+    protected $columns = array('line', 'result', 'name', 'idnumber', 'id', 'status');
 
     /**
      * @var int row number.
@@ -87,17 +88,20 @@ class tool_uploadcoursecategory_tracker {
      */
     public function output($line, $outcome, $status, $data) {
         global $OUTPUT;
-        if ($this->outputmode == self::NO_OUTPUT) {
+
+        if ($this->outputmode === self::NO_OUTPUT) {
             return;
         }
+
+        print "\nExisting output\n";
 
         if ($this->outputmode == self::OUTPUT_PLAIN) {
             $message = array(
                 $line,
                 $outcome ? 'OK' : 'NOK',
-                isset($data['id']) ? $data['id'] : '',
                 isset($data['name']) ? $data['name'] : '',
-                isset($data['idnumber']) ? $data['idnumber'] : ''
+                isset($data['idnumber']) ? $data['idnumber'] : 'N/A',
+                isset($data['id']) ? $data['id'] : '',
             );
             $this->buffer->output(implode("\t", $message));
             if (!empty($status)) {
@@ -142,6 +146,7 @@ class tool_uploadcoursecategory_tracker {
         }
 
         print "\nTRACKER::Entering results...\n\n";
+        print "Total = $total, created = $created, updated = $updated, deleted = $deleted, errors = $errors\n";
 
         $message = array(
             get_string('coursecategoriestotal', 'tool_uploadcoursecategory', $total),
@@ -150,6 +155,9 @@ class tool_uploadcoursecategory_tracker {
             get_string('coursecategoriesdeleted', 'tool_uploadcoursecategory', $deleted),
             get_string('coursecategorieserrors', 'tool_uploadcoursecategory', $errors)
         );
+
+        print "\nTRACKER::message:\n";
+        var_dump($message);
 
         if ($this->outputmode == self::OUTPUT_PLAIN) {
             foreach ($message as $msg) {

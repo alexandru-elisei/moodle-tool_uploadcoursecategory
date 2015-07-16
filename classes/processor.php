@@ -170,10 +170,13 @@ class tool_uploadcoursecategory_processor {
         }
         $tracker->start();
 
+        print "\nTRACKER STARTED SUCCESSFULLY!\n";
+        var_dump($tracker);
+
         // Statistics for tracker - TO DO!
         $total = 0;
         $created = 0;
-        $update = 0;
+        $updated = 0;
         $deleted = 0;
         $errors = 0;
 
@@ -211,12 +214,16 @@ class tool_uploadcoursecategory_processor {
                 
                 $data = array_merge($data, $category->get_finaldata(), array('id' => $category->get_id()));
 
+                /*
+                print "\nPROCESSOR::linenum = $this->linenum:\n";
+                print "\nPROCESSOR::status:\n";
+                var_dump($status);
                 print "\nPROCESSOR::assembled data:\n";
                 var_dump($data);
+                 */
 
-                //tracker->output($this->linenum, true, $status, $data);
-
-                //$tracker->results($total, 1, 0, 0, 0);
+                $tracker->output($this->linenum, true, $status, $data);
+                $tracker->results($total, $created, $updated, $deleted, $errors);
 
             } else {
                 print "\nErrors encountered:\n\t";

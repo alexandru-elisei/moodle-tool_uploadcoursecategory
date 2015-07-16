@@ -575,8 +575,8 @@ class tool_uploadcoursecategory_category {
 
                 print "\nThey are different, duh\n";
 
-                $this->set_status('coursecategorynameincremented',
-                    new lang_string('coursecategorynameincremented', 'tool_uploadcoursecategory',
+                $this->set_status('coursecategoryrenamed',
+                    new lang_string('coursecategoryrenamed', 'tool_uploadcoursecategory',
                     array('from' => $original, 'to' => $this->name)));
 
                 print "\nBefore new id check\n";
@@ -584,12 +584,14 @@ class tool_uploadcoursecategory_category {
                 if (isset($finaldata['idnumber'])) {
                     $originalidn = $finaldata['idnumber'];
                     $finaldata['idnumber'] = cc_increment_idnumber($finaldata['idnumber']);
+                    /*
                     if ($originalidn != $finaldata['idnumber']) {
                         $this->set_status('coursecategoryidnumberincremented',
                             new lang_string('coursecategoryidnumberincremented', 
                             'tool_uploadcoursecategory', 
                             array('from' => $originalidn, 'to' => $finaldata['idnumber'])));
                     }
+                     */
                 }
             }
 
@@ -774,8 +776,8 @@ class tool_uploadcoursecategory_category {
                     new lang_string('errorwhiledeletingcourse', 'tool_uploadcoursecategory'));
             }
             $this->id = $newcat->id;
-            $this->set_status('coursecategorycreated',
-                new lang_string('coursecategorycreated', 'tool_uploadcoursecategory'));
+            $this->set_status('coursecategoriescreated',
+                new lang_string('coursecategoriescreated', 'tool_uploadcoursecategory'));
         } else if ($this->do === self::DO_UPDATE) {
             $cat = coursecat::get($this->existing->id, IGNORE_MISSING, true);
             try {
