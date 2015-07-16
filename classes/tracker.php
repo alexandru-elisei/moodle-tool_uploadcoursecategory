@@ -141,7 +141,7 @@ class tool_uploadcoursecategory_tracker {
             return;
         }
 
-        print "\nTRACKER::Entering results...\n";
+        print "\nTRACKER::Entering results...\n\n";
 
         $message = array(
             get_string('coursecategoriestotal', 'tool_uploadcoursecategory', $total),

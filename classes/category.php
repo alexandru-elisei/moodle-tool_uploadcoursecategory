@@ -59,7 +59,7 @@ class tool_uploadcoursecategory_category {
     protected $defaults = array();
 
     /** @var int the ID of the course category that had been processed. */
-    public $id;
+    protected $id;
 
     /** @var int the ID of the course category parent, default 0 ("Top"). */
     protected $parentid = 0;
@@ -321,6 +321,7 @@ class tool_uploadcoursecategory_category {
         try {
             $deletecat = coursecat::get($this->existing->id, IGNORE_MISSING, true);
             $deletecat->delete_full(false);
+            $this->id = $this->existing->id;
         }
         catch (moodle_exception $e) {
             return false;
