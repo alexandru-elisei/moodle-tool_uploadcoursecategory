@@ -71,8 +71,40 @@ class tool_uploadcoursecategory_tracker {
      */
     public function __construct($outputmode = self::NO_OUTPUT) {
         $this->outputmode = $outputmode;
-        if ($this->outputmode == self::OUTPUT_PLAIN) {
+        if ($this->outputmode === self::OUTPUT_PLAIN) {
             $this->buffer = new progress_trace_buffer(new text_progress_trace());
+        }
+    }
+
+    /**
+     * Output one more line.
+     *
+     * @param int $line line number.
+     * @param bool $outcome success or not?
+     * @param array $status array of statuses.
+     * @param array $data extra data to display.
+     * @return void
+     */
+    public function output($line, $outcome, $status, $data) {
+        global $OUTPUT;
+        if ($this->outputmode == self::NO_OUTPUT) {
+            return;
+        }
+
+        if ($this->outputmode == self::OUTPUT_PLAIN) {
+            $message = array(
+                $line,
+                $outcome ? 'OK' : 'NOK',
+                isset($data['id']) ? $data['id'] : '',
+                isset($data['name']) ? $data['name'] : '',
+                isset($data['idnumber']) ? $data['idnumber'] : ''
+            );
+            $this->buffer->output(implode("\t", $message));
+            if (!empty($status)) {
+                foreach ($status as $st) {
+                    $this->buffer->output($st, 1);
+                }
+            }
         }
     }
 

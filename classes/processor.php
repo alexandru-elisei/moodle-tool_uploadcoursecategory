@@ -165,7 +165,7 @@ class tool_uploadcoursecategory_processor {
         }
         $this->processstarted = true;
 
-        if (empty($tracker)) {
+        if (is_null($tracker)) {
             $tracker = new tool_uploadcoursecategory_tracker(tool_uploadcoursecategory_tracker::OUTPUT_PLAIN);
         }
         $tracker->start();
@@ -190,29 +190,38 @@ class tool_uploadcoursecategory_processor {
             print "\nPROCESSOR::Data is:\n";
             print_r($data);
 
-            $categ_test = $this->get_coursecategory($data);
-
-            if ($categ_test->prepare()) {
+            $category = $this->get_coursecategory($data);
+            if ($category->prepare()) {
 
                 print "PROCESSOR::Before proceed...\n";
 
-                $categ_test->proceed();
-
-                $status = $categ_test->get_statuses();
+                $category->proceed();
+                $status = $category->get_statuses();
 
                 print "\nPROCESSOR::status:\n";
                 var_dump($status);
 
-                print "\nPrepared..\n";
+                if (array_key_exists('coursecategorycreated', $status)) {
+                    $created++;
+                } else if (array_key_exists('coursecategoryupdated', $status)) {
+                    $updated++;
+                } else if (array_key_exists('coursecategorydeleted', $status)) {
+                    $deleted++;
+                }
+                
+                $data = array_merge($data, $category->get_finaldata(), array('id' => $category->get_id()));
+
+                print "\nPROCESSOR::assembled data:\n";
+                var_dump($data);
+
+                //tracker->output($this->linenum, true, $status, $data);
 
                 //$tracker->results($total, 1, 0, 0, 0);
 
             } else {
-
                 print "\nErrors encountered:\n\t";
-                print_r($categ_test->get_errors());
+                print_r($category->get_errors());
                 print "\n";
-
             }
 
             /*

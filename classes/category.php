@@ -162,6 +162,27 @@ class tool_uploadcoursecategory_category {
     }
 
     /**
+     * Return final course category data.
+     *
+     * @return void
+     */
+    public function get_finaldata() {
+        return $this->finaldata;
+    }
+
+    /**
+     * Return the ID of the processed course category.
+     *
+     * @return int|null
+     */
+    public function get_id() {
+        if (!$this->processstarted) {
+            throw new coding_exception('The course has not been processed yet!');
+        }
+        return $this->id;
+    }
+
+    /**
      * Return the errors found during preparation.
      *
      * @return array
@@ -265,7 +286,7 @@ class tool_uploadcoursecategory_category {
                         $newcat = new tool_uploadcoursecategory_category(
                             tool_uploadcoursecategory_processor::MODE_CREATE_NEW,
                             tool_uploadcoursecategory_processor::UPDATE_NOTHING,
-                            $newdata, array("createmissing" => true)
+                            $newdata, array('createmissing' => true)
                         );
                         if ($newcat->prepare()) {
                             $newcat->proceed();
@@ -285,6 +306,7 @@ class tool_uploadcoursecategory_category {
                 $depth++;
             }
         }
+
         return $parentid;
     }
 
@@ -410,7 +432,10 @@ class tool_uploadcoursecategory_category {
 
         // Validate parent hierarchy.
         $this->parentid = $this->prepare_parent();
-        if ($this->parentid === -1) {
+
+        print "\nparentid = $this->parentid\n";
+
+        if ($this->parentid == -1) {
             $this->error('missingcategoryparent', new lang_string('missingcategoryparent',
                 'tool_uploadcoursecategory'));
             return false;
@@ -444,7 +469,12 @@ class tool_uploadcoursecategory_category {
 
         // Can we create/update the course under those conditions?
         if ($this->existing) {
+
+            print "\nEXISTING\n";
+
             if ($this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_NEW) {
+                print "\nCATEGORY EXISTS AND UPDATE NOT ALLOWED\n";
+
                 $this->error('categoryexistsanduploadnotallowed',
                     new lang_string('categoryexistsanduploadnotallowed', 'tool_uploadcoursecategory'));
                 return false;
