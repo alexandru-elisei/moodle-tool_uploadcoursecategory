@@ -62,8 +62,8 @@ Options:
 -f, --file                 CSV file
 -d, --delimiter            CSV delimiter: colon, semicolon, tab, cfg, comma (default)
 -e, --encoding             CSV file encoding: utf8 (default), ... etc
---allowdeletes             Allow courses to be deleted: true or false (default)
---allowrenames             Allow courses to be renamed: true or false (default)
+--allowdeletes             Allow categories to be deleted: true or false (default)
+--allowrenames             Allow categories to be renamed: true or false (default)
 --standardise              Standardise category names: true (default) or false
 --createmissing            Create missing parents in the hierarchy: true or false (default)
 
