@@ -138,6 +138,8 @@ class tool_uploadcoursecategory_category {
         if (isset($rawdata['name'])) {
             $categories = explode('/', $rawdata['name']);
             $this->name = array_pop($categories);
+            // Stripping whitespaces.
+            $this->name = trim($this->name);
         }
         $this->rawdata = $rawdata;
 
@@ -230,6 +232,14 @@ class tool_uploadcoursecategory_category {
         if (is_null($parentid)) {
             $parentid = $this->parentid;
         }
+
+        /*
+        print "\nEXISTS()::name:\n";
+        var_dump($name);
+        print "parentid:\n";
+        var_dump($parentid);
+         */
+
         return $DB->get_record('course_categories', array('name' => $name, 'parent' => $parentid));
     }
 
@@ -486,6 +496,13 @@ class tool_uploadcoursecategory_category {
             $oldname = array_pop($categories);
             $oldparentid = $this->prepare_parent($categories, 0);
             $this->existing = $this->exists($oldname, $oldparentid);
+
+            /*
+            print "\noldparentid = $oldparentid, oldname = $oldname\n";
+            print "this->existing:\n";
+            var_dump($this->existing);
+            print "\n";
+             */
 
             if ($oldparentid === -1) {
                 $this->error('oldcategoryhierarchydoesnotexist', 
