@@ -63,9 +63,6 @@ class tool_uploadcoursecategory_category {
 
     /** @var int the ID of the course category parent, default 0 ("Top"). */
     protected $parentid = 0;
-    
-    /** @var int the ID of the old category parent, default 0 ("Top"). */
-    protected $oldparentid = 0;
 
     /** @var array containing options passed from the processor. */
     protected $importoptions = array();
@@ -96,9 +93,6 @@ class tool_uploadcoursecategory_category {
 
     /** @var string category name. */
     protected $name;
-
-    /** @var string old category name. */
-    protected $oldname;
 
     /** @var array fields allowed as course category data. */
     static protected $validfields = array('name', 'description', 'idnumber',
@@ -494,6 +488,7 @@ class tool_uploadcoursecategory_category {
 
             $categories = explode('/', $finaldata['oldname']);
             $oldname = array_pop($categories);
+            $oldname = trim($oldname);
             $oldparentid = $this->prepare_parent($categories, 0);
             $this->existing = $this->exists($oldname, $oldparentid);
 
