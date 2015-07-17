@@ -170,10 +170,7 @@ class tool_uploadcoursecategory_processor {
         }
         $tracker->start();
 
-        print "\nTRACKER STARTED SUCCESSFULLY!\n";
-        var_dump($tracker);
-
-        // Statistics for tracker - TO DO!
+        // Statistics for tracker.
         $total = 0;
         $created = 0;
         $updated = 0;
@@ -189,22 +186,20 @@ class tool_uploadcoursecategory_processor {
             $total++;
 
             $data = $this->parse_line($line);
-
-            print "\nPROCESSOR::Data is:\n";
-            print_r($data);
-
             $category = $this->get_coursecategory($data);
+
+            //print "\nPROCESSOR::before preparing\n";
+
             if ($category->prepare()) {
 
-                print "PROCESSOR::Before proceed...\n";
+                //print "PROCESSOR::after preparing, before proceeding\n";
 
                 $category->proceed();
+
+                //print "PROCESSOR::after proceed, before gettting statuses\n";
+
                 $status = $category->get_statuses();
-
-                print "\nPROCESSOR::status:\n";
-                var_dump($status);
-
-                if (array_key_exists('coursecategorycreated', $status)) {
+                if (array_key_exists('coursecategoriescreated', $status)) {
                     $created++;
                 } else if (array_key_exists('coursecategoryupdated', $status)) {
                     $updated++;
@@ -213,49 +208,24 @@ class tool_uploadcoursecategory_processor {
                 }
                 
                 $data = array_merge($data, $category->get_finaldata(), array('id' => $category->get_id()));
+                $tracker->output($this->linenum, true, $status, $data);
+            } else {
 
                 /*
-                print "\nPROCESSOR::linenum = $this->linenum:\n";
-                print "\nPROCESSOR::status:\n";
-                var_dump($status);
-                print "\nPROCESSOR::assembled data:\n";
-                var_dump($data);
+                print "PROCESSOR::prepare error, before outputing errors\n";
                  */
 
-                $tracker->output($this->linenum, true, $status, $data);
-                $tracker->results($total, $created, $updated, $deleted, $errors);
+                $errors++;
 
-            } else {
-                print "\nErrors encountered:\n\t";
-                print_r($category->get_errors());
-                print "\n";
-            }
+                /*
+                print "PROCESSOR::errors = $errors\n";
+                print "PROCESSOR::linenum = $this->linenum\n";
+                 */
 
-            /*
-            $coursecategory = new stdClass();
-            foreach ($data as $key => $value) {
-                $coursecategory->$key = $value;
+                $tracker->output($this->linenum, false, $category->get_errors(), $data);
             }
-
-            // Need at least name to add a new category
-            if (!$coursecategory->name) {
-                throw new moodle_exception('csv_missing_name_column', 'error');
-            }
-
-            // Assuming always Top as parent category - TO DO!
-            $coursecategory->parent = 0;
-            $coursecategory->timemodified = time();
-            $coursecategory->timecreated = time();
-            try {
-                $coursecategory->sortorder = 999;
-                $coursecategory->id = $DB->insert_record('course_categories', $coursecategory);
-                fix_course_sortorder();
-            }
-            catch (moodle_exception $e) {
-                throw new moodle_exception($e->getMessage(), 'error');
-            }
-             */
         }
+        $tracker->results($total, $created, $updated, $deleted, $errors);
     }
 
     /**

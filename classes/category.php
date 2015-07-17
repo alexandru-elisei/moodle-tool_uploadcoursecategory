@@ -224,17 +224,12 @@ class tool_uploadcoursecategory_category {
     protected function exists($name = null, $parentid = null) {
         global $DB;
 
-        print "\nEntering exists...\n";
-
         if (is_null($name)) {
             $name = $this->name;
         }
         if (is_null($parentid)) {
             $parentid = $this->parentid;
         }
-
-        print "\nBefore returning...\n";
-
         return $DB->get_record('course_categories', array('name' => $name, 'parent' => $parentid));
     }
 
@@ -248,8 +243,6 @@ class tool_uploadcoursecategory_category {
      */
     protected function prepare_parent($categories = null, $parentid = null) {
         global $DB;
-
-        print "\nEntering prepare_parent...\n";
 
         if (is_null($categories)) {
             $categories = explode('/', $this->rawdata['name']);
@@ -266,8 +259,6 @@ class tool_uploadcoursecategory_category {
                 array_shift($categories);
             }
         }
-
-        print "\nStarting hierarchy check...\n";
 
         // Walking the hierarchy to check if parents exist
         $depth = 1;
@@ -401,8 +392,6 @@ class tool_uploadcoursecategory_category {
         global $DB;
 
         $this->prepared = true;
-
-        print "\nEntering prepare...\n";
         
         // Checking mandatory fields.
         foreach (self::$mandatoryfields as $key => $field) {
@@ -413,29 +402,20 @@ class tool_uploadcoursecategory_category {
             }
         }
 
-        print "\nChecked mandatory fields...\n";
-
         // Validate idnumber field.
         if (isset($this->rawdata['idnumber']) && !is_numeric($this->rawdata['idnumber'])) {
             $this->error('idnumbernotanumber', new lang_string('idnumbernotanumber',
                 'tool_uploadcoursecategory'));
             return false;
         }
-        
-        print "\nValided idnumber field...\n";
 
         // Standardise name
         if ($this->importoptions['standardise']) {
             $this->name = clean_param($this->name, PARAM_MULTILANG);
         }
 
-        print "\nStandardised...\n";
-
         // Validate parent hierarchy.
         $this->parentid = $this->prepare_parent();
-
-        print "\nparentid = $this->parentid\n";
-
         if ($this->parentid == -1) {
             $this->error('missingcategoryparent', new lang_string('missingcategoryparent',
                 'tool_uploadcoursecategory'));
@@ -443,8 +423,6 @@ class tool_uploadcoursecategory_category {
         }
 
         $this->existing = $this->exists();
-        
-        print "\nChecking for deletion...\n";
 
         // Can we delete the category?
         if (!empty($this->options['deleted'])) {
@@ -459,23 +437,15 @@ class tool_uploadcoursecategory_category {
             }
 
             $this->do = self::DO_DELETE;
-
-            print "\ncategory: category deletion accepted\n";
-
+            
             // We only need the name and parent id for category deletion.
             return true;
         }
 
-        print "\nChecking if update is possible...\n";
-
         // Can we create/update the course under those conditions?
         if ($this->existing) {
 
-            print "\nEXISTING\n";
-
             if ($this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_NEW) {
-                print "\nCATEGORY EXISTS AND UPDATE NOT ALLOWED\n";
-
                 $this->error('categoryexistsanduploadnotallowed',
                     new lang_string('categoryexistsanduploadnotallowed', 'tool_uploadcoursecategory'));
                 return false;
@@ -502,13 +472,9 @@ class tool_uploadcoursecategory_category {
             $finaldata[$field] = $value;
         }
         $finaldata['name'] = $this->name;
-
-        print "\nChecking for renaming...\n";
        
         // Can the category be renamed?
         if (!empty($finaldata['oldname'])) {
-
-            print "\nEntering rename...\n";
             if ($this->existing) {
                 $this->error('cannotrenamenamealreadyinuse',
                     new lang_string('cannotrenamenamealreadyinuse', 
@@ -560,8 +526,6 @@ class tool_uploadcoursecategory_category {
             return true;
         }
 
-        print "\nChecking for incrementing...\n";
-
         // If exists, but we only want to create categories, increment the name.
         if ($this->existing && $this->mode === tool_uploadcoursecategory_processor::MODE_CREATE_ALL) {
             $original = $this->name;
@@ -569,37 +533,16 @@ class tool_uploadcoursecategory_category {
             // We are creating a new course category
             $this->existing = null;
 
-            print "\nCATEGORY::original = $original, newname = $this->name\n";
-
             if ($this->name !== $original) {
-
-                print "\nThey are different, duh\n";
-
                 $this->set_status('coursecategoryrenamed',
                     new lang_string('coursecategoryrenamed', 'tool_uploadcoursecategory',
                     array('from' => $original, 'to' => $this->name)));
-
-                print "\nBefore new id check\n";
-
                 if (isset($finaldata['idnumber'])) {
                     $originalidn = $finaldata['idnumber'];
                     $finaldata['idnumber'] = cc_increment_idnumber($finaldata['idnumber']);
-                    /*
-                    if ($originalidn != $finaldata['idnumber']) {
-                        $this->set_status('coursecategoryidnumberincremented',
-                            new lang_string('coursecategoryidnumberincremented', 
-                            'tool_uploadcoursecategory', 
-                            array('from' => $originalidn, 'to' => $finaldata['idnumber'])));
-                    }
-                     */
                 }
             }
-
-            print "\nAfter incrementing: name = $this->name, idnumber: \n";
-            var_dump($finaldata['idnumber']);
         }  
-
-        print "\nChecking if id number is taken...\n";
 
         // Check if idnumber is already taken
         if (!$this->existing && isset($finaldata['idnumber']) &&
@@ -607,8 +550,6 @@ class tool_uploadcoursecategory_category {
             $this->error('idnumbernotunique', new lang_string('idnumbernotunique',
                 'tool_uploadcoursecategory'));
             return false;
-
-            print "\ncategory id check passed\n";
         }
 
         // Ultimate check mode vs. existence.
@@ -649,10 +590,6 @@ class tool_uploadcoursecategory_category {
         // Get final data.
         if ($this->existing) {
             $missingonly = ($updatemode === tool_uploadcoursecategory_processor::UPDATE_MISSING_WITH_DATA_OR_DEFAULTS);
-
-            print "\nCoursdata before getting final update data:\n";
-            var_dump($finaldata);
-
             $finaldata = $this->get_final_update_data($finaldata, $this->existing, $this->defaults, $missingonly);
 
             // Make sure we are not trying to mess with the front page, though we should never get here!
@@ -670,18 +607,6 @@ class tool_uploadcoursecategory_category {
 
         // Saving data.
         $this->finaldata = $finaldata;
-
-        // Restore data.
-        // TODO Speed up things by not really extracting the backup just yet, but checking that
-        // the backup file or shortname passed are valid. Extraction should happen in proceed().
-        /*
-        $this->restoredata = $this->get_restore_content_dir();
-        if ($this->restoredata === false) {
-            return false;
-         */
-
-        print "\nFinal data to be written to database:\n";
-        var_dump($this->finaldata);
 
         return true;
     }
@@ -745,10 +670,6 @@ class tool_uploadcoursecategory_category {
      * @return void
      */
     public function proceed() {
-        //global $CFG, $USER;
-
-        print "\nCATEGORY::Entering proceed...\n";
-
         if (!$this->prepared) {
             throw new coding_exception('The course has not been prepared.');
         } else if ($this->has_errors()) {
@@ -787,12 +708,7 @@ class tool_uploadcoursecategory_category {
                 $this->error('errorwhileupdatingcourse', new lang_string('errorwhileupdatingcourse',
                     'tool_uploadcoursecategory'));
             }
-
-            print "\nCATEGORY::updated course id = $cat->id, old id = $this->id\n";
-
             $this->id = $cat->id;
-
-            print "\nCATEGORY::updated course id = $cat->id, old id = $this->id\n";
             $this->set_status('coursecategoryupdated', 
                 new lang_string('coursecategoryupdated', 'tool_uploadcoursecategory'));
         }

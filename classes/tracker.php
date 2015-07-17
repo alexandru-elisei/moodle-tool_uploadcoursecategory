@@ -89,11 +89,12 @@ class tool_uploadcoursecategory_tracker {
     public function output($line, $outcome, $status, $data) {
         global $OUTPUT;
 
+        //print "TRACKER::entering\n";
+
         if ($this->outputmode === self::NO_OUTPUT) {
             return;
         }
 
-        print "\nExisting output\n";
 
         if ($this->outputmode == self::OUTPUT_PLAIN) {
             $message = array(
@@ -144,20 +145,24 @@ class tool_uploadcoursecategory_tracker {
         if ($this->outputmode == self::NO_OUTPUT) {
             return;
         }
-
-        print "\nTRACKER::Entering results...\n\n";
-        print "Total = $total, created = $created, updated = $updated, deleted = $deleted, errors = $errors\n";
-
+        /*
         $message = array(
-            get_string('coursecategoriestotal', 'tool_uploadcoursecategory', $total),
-            get_string('coursecategoriescreated', 'tool_uploadcoursecategory', $created),
+            get_string('coursecategoriestotal', 'tool_uploadcoursecategory',  $total),
+            get_string('coursecategoriescreated', 'tool_uploadcoursecategory',  $created),
             get_string('coursecategoriesupdated', 'tool_uploadcoursecategory', $updated),
             get_string('coursecategoriesdeleted', 'tool_uploadcoursecategory', $deleted),
             get_string('coursecategorieserrors', 'tool_uploadcoursecategory', $errors)
         );
-
-        print "\nTRACKER::message:\n";
-        var_dump($message);
+         */
+        $message = array(
+            "",
+            "Created: $created",
+            "Updated: $updated",
+            "Deleted: $deleted",
+            "Errors: $errors",
+            "",
+            "Total: $total",
+        );
 
         if ($this->outputmode == self::OUTPUT_PLAIN) {
             foreach ($message as $msg) {

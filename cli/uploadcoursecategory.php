@@ -83,7 +83,7 @@ if ($options['help']) {
     die();
 }
 
-echo "Moodle course category uploader running ...\n";
+echo "Moodle course category uploader running ...\n\n";
 
 $processoroptions = array(
     'allowdeletes' => (is_bool($options['allowdeletes']) && $options['allowdeletes']
@@ -163,5 +163,3 @@ unset($content);
 
 $processor = new tool_uploadcoursecategory_processor($cir, $processoroptions);
 $processor->execute();
-
-print "\nDone.\n";
