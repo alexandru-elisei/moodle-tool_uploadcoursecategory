@@ -187,17 +187,8 @@ class tool_uploadcoursecategory_processor {
 
             $data = $this->parse_line($line);
             $category = $this->get_coursecategory($data);
-
-            //print "\nPROCESSOR::before preparing\n";
-
             if ($category->prepare()) {
-
-                //print "PROCESSOR::after preparing, before proceeding\n";
-
                 $category->proceed();
-
-                //print "PROCESSOR::after proceed, before gettting statuses\n";
-
                 $status = $category->get_statuses();
                 if (array_key_exists('coursecategoriescreated', $status)) {
                     $created++;
@@ -210,18 +201,7 @@ class tool_uploadcoursecategory_processor {
                 $data = array_merge($data, $category->get_finaldata(), array('id' => $category->get_id()));
                 $tracker->output($this->linenum, true, $status, $data);
             } else {
-
-                /*
-                print "PROCESSOR::prepare error, before outputing errors\n";
-                 */
-
                 $errors++;
-
-                /*
-                print "PROCESSOR::errors = $errors\n";
-                print "PROCESSOR::linenum = $this->linenum\n";
-                 */
-
                 $tracker->output($this->linenum, false, $category->get_errors(), $data);
             }
         }
