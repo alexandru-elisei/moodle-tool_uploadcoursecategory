@@ -155,7 +155,7 @@ $importid = csv_import_reader::get_new_iid('uploadcoursecategory');
 $cir = new csv_import_reader($importid, 'uploadcoursecategory');
 $readcount = $cir->load_csv_content($content, $options['encoding'], $options['delimiter']);
 if ($readcount === false) {
-    print_error('csvfileerror', 'tool_uploadcourse', '', $cir->get_error());
+    print_error('csvfileerror', 'tool_uploadcoursecategory', '', $cir->get_error());
 } else if ($readcount == 0) {
     print_error('csvemptyfile', 'error', '', $cir->get_error());
 }
