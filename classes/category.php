@@ -70,7 +70,7 @@ class tool_uploadcoursecategory_category {
     /** @var int import mode. Matches tool_uploadcoursecategory_processor::MODE_* */
     protected $mode;
 
-    /** @var int update mode. Matches tool_uploadcourse_processor::UPDATE_* */
+    /** @var int update mode. Matches tool_uploadcategory_processor::UPDATE_* */
     protected $updatemode;
 
     /** @var array course category import options. */
