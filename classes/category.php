@@ -137,7 +137,7 @@ class tool_uploadcoursecategory_category {
         }
         $this->rawdata = $rawdata;
 
-        // Extract course options.
+        // Extract course category options.
         foreach (self::$optionfields as $option => $default) {
             $this->options[$option] = $rawdata[$option] ? $rawdata[$option] : null;
         }
@@ -489,6 +489,9 @@ class tool_uploadcoursecategory_category {
             $categories = explode('/', $finaldata['oldname']);
             $oldname = array_pop($categories);
             $oldname = trim($oldname);
+            if ($this->importoptions['standardise']) {
+                $oldname = clean_param($oldname, PARAM_MULTILANG);
+            }
             $oldparentid = $this->prepare_parent($categories, 0);
             $this->existing = $this->exists($oldname, $oldparentid);
 
