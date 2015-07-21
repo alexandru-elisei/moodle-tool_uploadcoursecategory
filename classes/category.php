@@ -588,7 +588,7 @@ class tool_uploadcoursecategory_category {
                 // No break!
             case tool_uploadcoursecategory_processor::MODE_CREATE_OR_UPDATE:
                 if ($this->existing) {
-                    if ($updatemode === tool_uploadcoursecategory_processor::UPDATE_NOTHING) {
+                    if ($this->updatemode === tool_uploadcoursecategory_processor::UPDATE_NOTHING) {
                         $this->error('updatemodedoessettonothing',
                             new lang_string('updatemodedoessettonothing', 'tool_uploadcoursecategory'));
                         return false;
