@@ -189,7 +189,7 @@ class tool_uploadcoursecategory_processor {
             $category = $this->get_coursecategory($data);
             if ($category->prepare()) {
                 $category->proceed();
-                $status = $category->get_statuses();
+                $status = $category->get_status();
                 if (array_key_exists('coursecategoriescreated', $status)) {
                     $created++;
                 } else if (array_key_exists('coursecategoryupdated', $status)) {

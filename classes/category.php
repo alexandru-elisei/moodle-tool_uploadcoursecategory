@@ -192,8 +192,8 @@ class tool_uploadcoursecategory_category {
      *
      * @return array
      */
-    public function get_statuses() {
-        return $this->statuses;
+    public function get_status() {
+        return $this->status;
     }
 
     /**
@@ -204,10 +204,10 @@ class tool_uploadcoursecategory_category {
      * @return void
      */
     protected function set_status($code, lang_string $message) {
-        if (array_key_exists($code, $this->statuses)) {
+        if (array_key_exists($code, $this->status)) {
             throw new coding_exception('Status code already defined');
         }
-        $this->statuses[$code] = $message;
+        $this->status[$code] = $message;
     }
 
     /**
@@ -226,13 +226,6 @@ class tool_uploadcoursecategory_category {
         if (is_null($parentid)) {
             $parentid = $this->parentid;
         }
-
-        /*
-        print "\nEXISTS()::name:\n";
-        var_dump($name);
-        print "parentid:\n";
-        var_dump($parentid);
-         */
 
         return $DB->get_record('course_categories', array('name' => $name, 'parent' => $parentid));
     }
@@ -268,7 +261,6 @@ class tool_uploadcoursecategory_category {
         $depth = 1;
         if (count($categories) > 0) {
             foreach ($categories as $cat) {
-                $cat = trim($cat);
                 $category = $DB->get_record('course_categories', 
                         array('name' => $cat, 'parent' => $parentid));
                 if (empty($category)) {
@@ -287,7 +279,7 @@ class tool_uploadcoursecategory_category {
                             $newcat->proceed();
                             $errors = $newcat->get_errors();
                             if (empty($errors)) {
-                                $parentid = $newcat->id;
+                                $parentid = $newcat->get_id();
                             } else {
                                 return -1;
                             }
@@ -414,7 +406,7 @@ class tool_uploadcoursecategory_category {
         }
 
         // Standardise name
-        if ($this->importoptions['standardise']) {
+        if (isset($this->importoptions['standardise'])) {
             $this->name = clean_param($this->name, PARAM_MULTILANG);
         }
 
@@ -489,18 +481,11 @@ class tool_uploadcoursecategory_category {
             $categories = explode('/', $finaldata['oldname']);
             $oldname = array_pop($categories);
             $oldname = trim($oldname);
-            if ($this->importoptions['standardise']) {
+            if (isset($this->importoptions['standardise'])) {
                 $oldname = clean_param($oldname, PARAM_MULTILANG);
             }
             $oldparentid = $this->prepare_parent($categories, 0);
             $this->existing = $this->exists($oldname, $oldparentid);
-
-            /*
-            print "\noldparentid = $oldparentid, oldname = $oldname\n";
-            print "this->existing:\n";
-            var_dump($this->existing);
-            print "\n";
-             */
 
             if ($oldparentid === -1) {
                 $this->error('oldcategoryhierarchydoesnotexist', 
@@ -616,7 +601,7 @@ class tool_uploadcoursecategory_category {
 
             $this->do = self::DO_UPDATE;
         } else {
-            $finaldata = $this->get_final_create_data($coursedata);
+            $finaldata = $this->get_final_create_data($finaldata);
             $this->do = self::DO_CREATE;
         }
 
