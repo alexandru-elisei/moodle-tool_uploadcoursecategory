@@ -17,10 +17,10 @@
 /**
  * Strings for component 'tool_uploadcoursecategory', language 'en', branch 'MOODLE_22_STABLE'
  *
- * @package    tool
- * @subpackage uploadcoursecategory
+ * @package    tool_uploadcoursecategory
  * @copyright  2011 Petr Skoda {@link http://skodak.org}
  * @copyright  2012 Piers Harding
+ * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -68,7 +68,7 @@ $string['coursecategoryuptodate'] = 'Course category up-to-date';
 $string['coursecategorydeleted'] = 'Course category deleted';
 $string['coursecategoryrenamed'] = 'Course category renamed';
 $string['coursecategoriescreated'] = 'Course categories created';
-$string['coursecategoriesdeleted'] = 'Course categories deleted';
+$string['coursecategoriesdeleter'] = 'Course categories deleted';
 $string['coursecategoriesrenamed'] = 'Course categories renamed';
 $string['coursecategoriesskipped'] = 'Course categories skipped';
 $string['coursecategoriesupdated'] = 'Course categories updated';
@@ -121,4 +121,21 @@ $string['coursetemplatename'] = 'Course template name';
 $string['coursetemplatename_help'] = 'Select an existing course name to use as a template for the creation of all Course categories.';
 $string['templatefile'] = 'Template backup file';
 $string['invalidbackupfile'] = 'Invalid backup file';
-
+$string['invalidmode'] = 'Invalid mode';
+$string['invalidupdatemode'] = 'Invalid update mode';
+$string['invalidcsvfile'] = 'Invalid file';
+$string['invalidencoding'] = 'Invalid encoding';
+$string['coursecategoriestotal'] = 'Course categories total';
+$string['coursecategorieserrors'] = 'Errors';
+$string['missingmandatoryfields'] = 'Missing mandatory fields';
+$string['idnotanumber'] = 'ID not a number';
+$string['idnumberexists'] = 'ID number exists';
+$string['missingcategoryparent'] = 'Missing category parent';
+$string['coursecategorynotupdatedoff'] = 'Course category not updated - update off';
+$string['coursecategorynotupdatednothing'] = 'Course category not updated - update mode nothing';
+$string['coursecategorynotcreateoff'] = 'Course category not created - create off';
+$string['unknownuploadmode'] = 'Error - unknown upload mode';
+$string['cannotupdatefrontpage'] = 'Cannot update front page';
+$string['errordeletingcategory'] = 'Error deleting category';
+$string['errorcreatingcategory'] = 'Error creating category';
+$string['errorupdatingcategory'] = 'Error updating category';

@@ -145,25 +145,14 @@ class tool_uploadcoursecategory_tracker {
         if ($this->outputmode == self::NO_OUTPUT) {
             return;
         }
-        /*
         $message = array(
             get_string('coursecategoriestotal', 'tool_uploadcoursecategory',  $total),
             get_string('coursecategoriescreated', 'tool_uploadcoursecategory',  $created),
             get_string('coursecategoriesupdated', 'tool_uploadcoursecategory', $updated),
             get_string('coursecategoriesdeleted', 'tool_uploadcoursecategory', $deleted),
-            get_string('coursecategorieserrors', 'tool_uploadcoursecategory', $errors)
+            get_string('errors', 'tool_uploadcoursecategory', $errors)
         );
-         */
-        $message = array(
-            "",
-            "Created: $created",
-            "Updated: $updated",
-            "Deleted: $deleted",
-            "Errors: $errors",
-            "",
-            "Total: $total",
-        );
-
+        
         if ($this->outputmode == self::OUTPUT_PLAIN) {
             foreach ($message as $msg) {
                 $this->buffer->output($msg);
