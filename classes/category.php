@@ -139,7 +139,7 @@ class tool_uploadcoursecategory_category {
 
         // Extract course category options.
         foreach (self::$optionfields as $option => $default) {
-            $this->options[$option] = $rawdata[$option] ? $rawdata[$option] : null;
+            $this->options[$option] = isset($rawdata[$option]) ? $rawdata[$option] : null;
         }
 
         // Copy import options.

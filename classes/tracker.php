@@ -87,10 +87,6 @@ class tool_uploadcoursecategory_tracker {
      * @return void
      */
     public function output($line, $outcome, $status, $data) {
-        global $OUTPUT;
-
-        //print "TRACKER::entering\n";
-
         if ($this->outputmode === self::NO_OUTPUT) {
             return;
         }
