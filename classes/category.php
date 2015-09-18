@@ -392,8 +392,8 @@ class tool_uploadcoursecategory_category {
         // Checking mandatory fields.
         foreach (self::$mandatoryfields as $key => $field) {
             if (!isset($this->rawdata[$field])) {
-                $this->error('missingmandatoryfields', new lang_string('missingmandatoryfields',
-                    'tool_uploadcoursecategory'));
+                $this->error('missingfield', new lang_string('missingfield',
+                    'error', $field));
                 return false;
             }
         }

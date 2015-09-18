@@ -127,7 +127,6 @@ $string['invalidcsvfile'] = 'Invalid file';
 $string['invalidencoding'] = 'Invalid encoding';
 $string['total'] = 'Total';
 $string['coursecategorieserrors'] = 'Errors';
-$string['missingmandatoryfields'] = 'Missing mandatory fields';
 $string['idnotanumber'] = 'ID not a number';
 $string['idnumberexists'] = 'ID number exists';
 $string['missingcategoryparent'] = 'Missing category parent';
